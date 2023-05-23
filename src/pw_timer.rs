@@ -227,7 +227,7 @@ impl Row {
         timestamp += self.h_five;
         events.push(Event {
             timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('e')),
+            key_event: KeyEvent::KeyUp(Key::Layout('5')),
         });
 
         timestamp += self.ud_five_shift_r;
