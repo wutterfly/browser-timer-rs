@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if test == "timer" {
         browser_timer::browser_timer_sampler(
             &OpenBrowser::Open(
-                "https://wutterfly.com/timer-precision/extern_input/cross_origin.html",
+                "https://wutterfly.com/timer-precision/extern_input/same_origin.html",
             ),
             1010,
             0.1,

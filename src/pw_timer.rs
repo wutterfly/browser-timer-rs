@@ -173,153 +173,83 @@ impl Row {
         // .tie5Roanl
 
         // .
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('.')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('.')));
         timestamp += self.h_period;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('.')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('.')));
 
         timestamp += self.ud_period_t;
 
         // t
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('t')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('t')));
         timestamp += self.h_t;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('t')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('t')));
 
         timestamp += self.ud_t_i;
 
         // i
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('i')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('i')));
         timestamp += self.h_i;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('i')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('i')));
 
         timestamp += self.ud_i_e;
 
         // e
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('e')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('e')));
         timestamp += self.h_e;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('e')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('e')));
 
         timestamp += self.ud_e_five;
 
         // 5
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('5')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('5')));
         timestamp += self.h_five;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('5')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('5')));
 
         timestamp += self.ud_five_shift_r;
 
         // R
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Shift),
-        });
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('r')),
-        });
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Shift),
-        });
+        events.push(Event::new_down(timestamp, Key::Shift));
+        events.push(Event::new_down(timestamp, Key::Layout('r')));
+        events.push(Event::new_up(timestamp, Key::Shift));
         timestamp += self.h_shift_r;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('r')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('r')));
+        
 
         timestamp += self.ud_shift_r_o;
 
         // o
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('o')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('o')));
         timestamp += self.h_o;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('o')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('o')));
+        
 
         timestamp += self.ud_o_a;
 
         // a
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('a')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('a')));
         timestamp += self.h_a;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('a')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('a')));
 
         timestamp += self.ud_a_n;
 
         // n
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('n')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('n')));
         timestamp += self.h_n;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('n')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('n')));
 
         timestamp += self.ud_n_l;
 
         // l
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Layout('l')),
-        });
+        events.push(Event::new_down(timestamp, Key::Layout('l')));
         timestamp += self.h_l;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Layout('l')),
-        });
+        events.push(Event::new_up(timestamp, Key::Layout('l')));
 
         timestamp += self.ud_l_return;
 
         // return
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyDown(Key::Return),
-        });
+        events.push(Event::new_down(timestamp, Key::Return));
         timestamp += self.h_return;
-        events.push(Event {
-            timestamp,
-            key_event: KeyEvent::KeyUp(Key::Return),
-        });
+        events.push(Event::new_up(timestamp, Key::Return));
 
         events.sort();
 
@@ -336,6 +266,14 @@ pub struct Event {
 impl Event {
     pub fn execute(&self, keybord: &mut Enigo) {
         self.key_event.exec(keybord);
+    }
+
+    pub const fn new_down(timestamp: f64, key: Key) -> Self {
+        Self { timestamp, key_event: KeyEvent::KeyDown(key) }
+    }
+
+    pub const fn new_up(timestamp: f64, key: Key) -> Self {
+        Self { timestamp, key_event: KeyEvent::KeyUp(key) }
     }
 }
 
