@@ -11,7 +11,7 @@ use inputbot::KeybdKey;
 use crate::OpenBrowser;
 
 pub fn capture_raw_input<S: AsRef<str>>(
-    browser: OpenBrowser<S>,
+    browser: &OpenBrowser<S>,
     file: Option<S>,
     listen_sec: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -28,8 +28,8 @@ pub fn capture_raw_input<S: AsRef<str>>(
         inputbot::BlockInput::DontBlock
     });
 
+
     // spawn thread to process key-events
-    let timings_clone = timings.clone();
     thread::spawn(move || {
         println!("Waiting for input..");
         //timings_clone.lock().unwrap().push(Instant::now());
@@ -55,7 +55,7 @@ pub fn capture_raw_input<S: AsRef<str>>(
     }
 
     // output results
-    println!("{:?}", distances);
+    println!("{distances:?}");
     if let Some(file) = file {
         let mut open_file = File::options()
             .truncate(true)
@@ -63,7 +63,7 @@ pub fn capture_raw_input<S: AsRef<str>>(
             .write(true)
             .open(file.as_ref())
             .unwrap();
-        writeln!(open_file, "{:?}", distances)?;
+        writeln!(open_file, "{distances:?}")?;
     }
     Ok(())
 }

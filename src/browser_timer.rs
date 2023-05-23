@@ -6,13 +6,13 @@ use crate::{
 };
 
 pub fn browser_timer_sampler<S: AsRef<str>>(
-    browser: OpenBrowser<S>,
+    browser: &OpenBrowser<S>,
     iterations: usize,
     delay: f64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut enigo = Enigo::new();
     browser.try_open()?;
-    delay_sleep(3.0);
+    delay_sleep(10.0);
 
     let mut delays = Vec::with_capacity(iterations);
 

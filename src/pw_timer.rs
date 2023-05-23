@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub fn pw_simulation<S: AsRef<str>>(
-    browser: OpenBrowser<S>,
+    browser: &OpenBrowser<S>,
     file: S,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let rows = read_data(file)?;
@@ -28,7 +28,7 @@ pub fn pw_simulation<S: AsRef<str>>(
     writeln!(&mut output_file, "i,should_take,took,subject,session,rep")?;
 
     browser.try_open()?;
-    delay_sleep(5.0);
+    delay_sleep(10.0);
 
     let mut total = 0.0;
     for row in &rows {
