@@ -36,11 +36,11 @@ pub fn pw_simulation<S: AsRef<str>>(
         total += 0.2;
     }
 
-    println!(
-        "Total Time needed: {:?}h",
-        Duration::from_secs_f64(total).as_secs() / 3600
-    );
+    let total_hours_needed = Duration::from_secs_f64(total).as_secs() / 3600;
 
+    println!("Total Time needed: {total_hours_needed}h",);
+
+    let start_time = Instant::now();
     for (i, row) in rows.iter().enumerate() {
         let events = row.create_events();
         let now = Instant::now();
@@ -63,7 +63,12 @@ pub fn pw_simulation<S: AsRef<str>>(
             row.subject, row.session_index, row.rep
         )?;
 
-        println!("{i} / {}", rows.len());
+        println!(
+            "\r{i} / {} ({}%)  --  {:.4}h / {total_hours_needed}h",
+            rows.len(),
+            i / rows.len(),
+            start_time.elapsed().as_secs_f64() / 3600.0
+        );
 
         delay_sleep(0.2);
     }
