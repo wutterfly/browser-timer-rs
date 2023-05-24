@@ -66,7 +66,7 @@ pub fn pw_simulation<S: AsRef<str>>(
         println!(
             "{i} / {} ({:.4}%)  --  {:.4}h / {total_hours_needed}h",
             rows.len(),
-            (i as f64 / rows.len() as f64) * 100,
+            (i as f64 / rows.len() as f64) * 100.0,
             start_time.elapsed().as_secs_f64() / 3600.0
         );
 
