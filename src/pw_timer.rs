@@ -74,6 +74,7 @@ pub fn pw_simulation<S: AsRef<str>>(
         if i % 1000 == 0 {
             keybord.key_down(Key::F2);
             keybord.key_up(Key::F2);
+            delay_sleep(0.8);
         }
 
         delay_sleep(0.2);
