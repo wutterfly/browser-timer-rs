@@ -28,7 +28,6 @@ pub fn capture_raw_input<S: AsRef<str>>(
         inputbot::BlockInput::DontBlock
     });
 
-
     // spawn thread to process key-events
     thread::spawn(move || {
         println!("Waiting for input..");

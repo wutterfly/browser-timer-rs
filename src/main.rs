@@ -1,26 +1,23 @@
 #![warn(clippy::pedantic)]
 
-
 mod browser_timer;
 mod delay;
 mod pw_timer;
 mod raw_input;
 
-const EXE_OPTIONS: [& str; 3] = ["timer", "password", "input"];
+const EXE_OPTIONS: [&str; 3] = ["timer", "password", "input"];
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
 
-
-    
     if args.len() < 2 || !EXE_OPTIONS.contains(&args[1].as_str().to_lowercase().as_str()) {
         println!("Specifiy what test to run:");
         for option in EXE_OPTIONS {
             println!("- {option}");
         }
         return Ok(());
-    } 
-    
+    }
+
     let test = args[1].as_str().to_lowercase();
 
     if test == "timer" {
@@ -59,8 +56,8 @@ pub enum OpenBrowser<S: AsRef<str>> {
 
 impl<S: AsRef<str>> OpenBrowser<S> {
     /// Trys to open a URL inside the systems default browser.
-    /// 
-    /// # Results
+    ///
+    /// # Errors
     /// Returns an error if website failed to open.
     pub fn try_open(&self) -> Result<(), Box<dyn std::error::Error>> {
         match self {

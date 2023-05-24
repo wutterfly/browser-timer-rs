@@ -38,7 +38,7 @@ pub fn pw_simulation<S: AsRef<str>>(
 
     let total_hours_needed = Duration::from_secs_f64(total).as_secs() / 3600;
 
-    println!("Total Time needed: {total_hours_needed}h",);
+    println!("Total Time needed: {total_hours_needed}h");
 
     let start_time = Instant::now();
     for (i, row) in rows.iter().enumerate() {
@@ -64,9 +64,9 @@ pub fn pw_simulation<S: AsRef<str>>(
         )?;
 
         println!(
-            "\r{i} / {} ({}%)  --  {:.4}h / {total_hours_needed}h",
+            "\r{i} / {} ({:.4}%)  --  {:.4}h / {total_hours_needed}h",
             rows.len(),
-            i / rows.len(),
+            i as f64 / rows.len() as f64,
             start_time.elapsed().as_secs_f64() / 3600.0
         );
 
@@ -213,7 +213,6 @@ impl Row {
         events.push(Event::new_up(timestamp, Key::Shift));
         timestamp += self.h_shift_r;
         events.push(Event::new_up(timestamp, Key::Layout('r')));
-        
 
         timestamp += self.ud_shift_r_o;
 
@@ -221,7 +220,6 @@ impl Row {
         events.push(Event::new_down(timestamp, Key::Layout('o')));
         timestamp += self.h_o;
         events.push(Event::new_up(timestamp, Key::Layout('o')));
-        
 
         timestamp += self.ud_o_a;
 
@@ -269,11 +267,17 @@ impl Event {
     }
 
     pub const fn new_down(timestamp: f64, key: Key) -> Self {
-        Self { timestamp, key_event: KeyEvent::KeyDown(key) }
+        Self {
+            timestamp,
+            key_event: KeyEvent::KeyDown(key),
+        }
     }
 
     pub const fn new_up(timestamp: f64, key: Key) -> Self {
-        Self { timestamp, key_event: KeyEvent::KeyUp(key) }
+        Self {
+            timestamp,
+            key_event: KeyEvent::KeyUp(key),
+        }
     }
 }
 
