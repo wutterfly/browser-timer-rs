@@ -71,7 +71,7 @@ pub fn pw_simulation<S: AsRef<str>>(
         );
 
         // every 1000 passwords, trigger download
-        if i % 1000 == 0 {
+        if i != 0 && i % 1000 == 0 {
             keybord.key_down(Key::F2);
             keybord.key_up(Key::F2);
             delay_sleep(0.8);
