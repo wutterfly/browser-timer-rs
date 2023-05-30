@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         raw_input::capture_raw_input(
             &OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html"),
             Some("./input_data_rs.json"),
-            15,
+            false,
         )?;
     }
 
