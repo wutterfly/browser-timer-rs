@@ -97,7 +97,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 fn send(event_type: &EventType) {
     match simulate(event_type) {
         Ok(()) => (),
-        Err(SimulateError) => {
+        Err(_) => {
             println!("We could not send {:?}", event_type);
         }
     }

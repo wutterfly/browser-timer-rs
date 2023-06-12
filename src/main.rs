@@ -4,7 +4,7 @@ mod browser_timer;
 mod delay;
 mod pw_timer;
 
-#[cfg(not(target_os = "macos"))]
+// #[cfg(not(target_os = "macos"))]
 // mod raw_input;
 // #[cfg(target_os = "macos")]
 mod raw_input_macos;
