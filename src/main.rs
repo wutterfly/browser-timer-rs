@@ -3,7 +3,12 @@
 mod browser_timer;
 mod delay;
 mod pw_timer;
+
+#[cfg(not(target_os = "macos"))]
 mod raw_input;
+
+#[cfg(target_os = "macos")]
+mod raw_input_macos;
 
 const EXE_OPTIONS: [&str; 3] = ["timer", "password", "input"];
 
@@ -38,10 +43,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if test == "input" {
+        let bool = &args[2];
+        let simulate = match bool.as_str() {
+            "true" => true,
+
+            "false" => false,
+
+            _ => panic!(), // Or whatever appropriate default value or error.
+        };
+
+        #[cfg(not(target_os = "macos"))]
         raw_input::capture_raw_input(
             &OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html"),
             Some("./input_data_rs.json"),
-            false,
+            simulate,
+        )?;
+
+        #[cfg(target_os = "macos")]
+        raw_input_macos::capture_raw_input(
+            &OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html"),
+            Some("./input_data_rs.json"),
+            simulate,
         )?;
     }
 

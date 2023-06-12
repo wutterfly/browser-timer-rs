@@ -22,7 +22,8 @@ pub fn pw_simulation<S: AsRef<str>>(
     let mut output_file = File::options()
         .create(true)
         .write(true)
-        .append(true)
+        .append(false)
+        .truncate(true)
         .open("./password_data_rs.csv")?;
 
     writeln!(&mut output_file, "i,should_take,took,subject,session,rep")?;
