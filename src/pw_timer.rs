@@ -52,7 +52,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // calculate time needed as hours
     let total_hours_needed = total / 3600.0;
 
-    println!("Total Time needed: {total_hours_needed}h");
+    println!("Total Time needed: {total_hours_needed:.2}h");
 
     // save total start time
     let start_time = Instant::now();
@@ -91,7 +91,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
         // log progess
         println!(
-            "{i} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed}h",
+            "{i} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed:.2}h",
             rows.len(),
             (i as f64 / rows.len() as f64) * 100.0,
             start_time.elapsed().as_secs_f64() / 3600.0
