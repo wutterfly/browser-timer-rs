@@ -2,6 +2,7 @@ use std::{
     fmt::Debug,
     fs::File,
     io::Write,
+    path::Path,
     time::{Duration, Instant},
 };
 
@@ -12,58 +13,81 @@ use crate::{
     OpenBrowser,
 };
 
-pub fn pw_simulation<S: AsRef<str>>(
+pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     browser: &OpenBrowser<S>,
-    file: S,
+    in_file: R,
+    out_file: R,
+    sleep: f64,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let rows = read_data(file)?;
-    let mut keybord = Enigo::new();
+    // read all rows (1 row == 1 password)
+    let rows = read_data(in_file.as_ref())?;
+    // create new keyboard
+    let mut keyboard = Enigo::new();
 
+    // open the output file
     let mut output_file = File::options()
         .create(true)
         .write(true)
         .append(false)
         .truncate(true)
-        .open("./password_data_rs.csv")?;
+        .open(out_file.as_ref())?;
 
+    // initilaize csv file
     writeln!(&mut output_file, "i,should_take,took,subject,session,rep")?;
 
+    // try to open default webbrowser
     browser.try_open()?;
+    // wait for user to be ready
     delay_sleep(10.0);
 
+    // calculate total time needed
     let mut total = 0.0;
     for row in &rows {
         total += row.should_take().as_secs_f64();
         total += 0.2;
     }
 
-    let total_hours_needed = Duration::from_secs_f64(total).as_secs() / 3600;
+    // calculate time needed as hours
+    let total_hours_needed = total / 3600.0;
 
     println!("Total Time needed: {total_hours_needed}h");
 
+    // save total start time
     let start_time = Instant::now();
+
+    // iterate each row/password
     for (i, row) in rows.iter().enumerate() {
+        // create precalculated event list, ordered by time
         let events = row.create_events();
+        // save password start time
         let now = Instant::now();
 
         // .tie5Roanl
+        // iterate each input event for row/password
         for (i, event) in events.iter().enumerate() {
-            event.execute(&mut keybord);
+            // execute event
+            event.execute(&mut keyboard);
+            // if there is next event/not last
             if let Some(next_event) = events.get(i + 1) {
+                // calculate how long until the next event
                 let sleep = next_event.timestamp - event.timestamp;
+                // sleep until next event should be executed
                 delay_busy(sleep);
             }
         }
-
+        // check how long it took to simulate password
         let elapsed = now.elapsed().as_secs_f64();
+        // get how long it should take to simulate password
         let should_take = row.should_take().as_secs_f64();
 
+        // write timing data to output file
         writeln!(
             &mut output_file,
             "{i},{should_take},{elapsed},{},{},{}",
             row.subject, row.session_index, row.rep
         )?;
 
+        // log progess
         println!(
             "{i} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed}h",
             rows.len(),
@@ -73,16 +97,20 @@ pub fn pw_simulation<S: AsRef<str>>(
 
         // every 1000 passwords, trigger download
         if i != 0 && i % 1000 == 0 {
-            keybord.key_down(Key::F2);
-            keybord.key_up(Key::F2);
+            // signal webapp to download data
+            keyboard.key_down(Key::Q); // "Q" Key is not used in password
+            keyboard.key_up(Key::Q);
+            // wait a bit for download to finish
             delay_sleep(0.8);
         }
 
-        delay_sleep(0.2);
+        // wait a bit before beginning with next password simulation
+        delay_sleep(sleep);
     }
 
-    keybord.key_down(Key::F2);
-    keybord.key_up(Key::F2);
+    // trigger download for rest of data
+    keyboard.key_down(Key::Q);
+    keyboard.key_up(Key::Q);
     Ok(())
 }
 
@@ -90,13 +118,16 @@ pub fn pw_simulation<S: AsRef<str>>(
 ///
 /// //  Results
 /// Returns an error, if file could not be opened or failed parsing CSV-File into rows.
-fn read_data<S: AsRef<str>>(file: S) -> Result<Vec<Row>, Box<dyn std::error::Error>> {
+fn read_data<R: AsRef<Path>>(file: R) -> Result<Vec<Row>, Box<dyn std::error::Error>> {
+    // open input file
     let file = std::fs::File::open(file.as_ref())?;
 
     let mut reader = csv::Reader::from_reader(file);
 
+    // read csv file
     let rows = reader.records().collect::<Result<Vec<_>, _>>()?;
 
+    // map raw csv to `Row` struct
     let rows = rows
         .iter()
         .map(|row| row.deserialize(None))
@@ -105,6 +136,7 @@ fn read_data<S: AsRef<str>>(file: S) -> Result<Vec<Row>, Box<dyn std::error::Err
     Ok(rows)
 }
 
+/// Struct describing password input
 #[derive(Debug, serde::Deserialize)]
 struct Row {
     pub subject: String,
@@ -144,6 +176,7 @@ struct Row {
 }
 
 impl Row {
+    /// Calculate how long it should take to simulate row
     pub fn should_take(&self) -> Duration {
         let mut total = 0.0;
         // .tie5Roanl
@@ -173,6 +206,7 @@ impl Row {
         Duration::from_secs_f64(total)
     }
 
+    /// Precalculate input events, ordered by time.
     pub fn create_events(&self) -> Vec<Event> {
         let mut events = Vec::new();
 

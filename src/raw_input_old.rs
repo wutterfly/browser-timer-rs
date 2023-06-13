@@ -1,5 +1,6 @@
 use std::{
     fs::File,
+    io::Write,
     path::Path,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -9,7 +10,8 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rdev::{grab, simulate, Event, EventType, Key};
+use enigo::{Enigo, Key, KeyboardControllable};
+use inputbot::KeybdKey;
 
 use crate::OpenBrowser;
 
@@ -29,34 +31,32 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     let stopped = Arc::new(AtomicBool::new(false));
     let stopped_clone = stopped.clone();
 
-    let callback = move |event: Event| -> Option<Event> {
-        if let EventType::KeyPress(Key::Num0) = event.event_type {
-            let instant_now = start_clone.elapsed();
-            let mut lock = timings_clone.lock().unwrap();
-            if lock.len() >= 100 {
-                stopped_clone.store(true, Ordering::Relaxed);
-            } else {
-                lock.push(instant_now.as_secs_f64());
-            }
+    // Register listener
+    KeybdKey::Numrow0Key.blockable_bind(move || {
+        let instant_now = start_clone.elapsed();
+        let mut lock = timings_clone.lock().unwrap();
+        if lock.len() >= 100 {
+            stopped_clone.store(true, Ordering::Relaxed);
+        } else {
+            lock.push(instant_now.as_secs_f64());
         }
-        Some(event)
-    };
+
+        inputbot::BlockInput::DontBlock
+    });
 
     // spawn thread to process key-events
     thread::spawn(move || {
         println!("Waiting for input..");
-        // This will block.
-        if let Err(error) = grab(callback) {
-            println!("Error: {:?}", error)
-        }
+        inputbot::handle_input_events();
     });
 
     let handle = if simulate {
         let stopped_clone = stopped.clone();
+        let mut keybord = Enigo::new();
         thread::sleep(Duration::from_secs(5));
         Some(thread::spawn(move || {
             while !stopped_clone.load(Ordering::Relaxed) {
-                send(&EventType::KeyPress(Key::Num0));
+                keybord.key_down(Key::Num0);
                 thread::sleep(Duration::from_millis(200));
             }
         }))
@@ -82,7 +82,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 
     // output results
     if let Some(file) = file {
-        use std::io::Write;
         let mut open_file = File::options()
             .truncate(true)
             .create(true)
@@ -92,13 +91,4 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
         writeln!(open_file, "{timestamps:#?}")?;
     }
     Ok(())
-}
-
-fn send(event_type: &EventType) {
-    match simulate(event_type) {
-        Ok(()) => (),
-        Err(_) => {
-            println!("We could not send {:?}", event_type);
-        }
-    }
 }

@@ -3,69 +3,58 @@
 mod browser_timer;
 mod delay;
 mod pw_timer;
+mod raw_input;
 
-// #[cfg(not(target_os = "macos"))]
-// mod raw_input;
-// #[cfg(target_os = "macos")]
-mod raw_input_macos;
-
-const EXE_OPTIONS: [&str; 3] = ["timer", "password", "input"];
+use clap::{Parser, Subcommand};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = std::env::args().collect();
+    // parse command line args
+    let args = Args::parse();
 
-    if args.len() < 2 || !EXE_OPTIONS.contains(&args[1].as_str().to_lowercase().as_str()) {
-        println!("Specifiy what test to run:");
-        for option in EXE_OPTIONS {
-            println!("- {option}");
+    match args.command {
+        // Capture raw use input timestamps
+        Commands::Input {
+            simulate,
+            output,
+            wait,
+            delay,
+            inputs,
+        } => {
+            // check if browser should be opened
+            let browser = if args.browser {
+                OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html")
+            } else {
+                OpenBrowser::False
+            };
+            raw_input::capture_raw_input(&browser, output.as_str(), simulate, wait, delay, inputs)?;
         }
-        return Ok(());
-    }
-
-    let test = args[1].as_str().to_lowercase();
-
-    if test == "timer" {
-        browser_timer::browser_timer_sampler(
-            &OpenBrowser::Open(
-                "https://wutterfly.com/timer-precision/extern_input/same_origin.html",
-            ),
-            1010,
-            0.1,
-        )?;
-    }
-
-    if test == "password" {
-        pw_timer::pw_simulation(
-            &OpenBrowser::Open("https://wutterfly.com/cont-auth/extern_input/same_origin.html"),
-            "./DSL-StrongPasswordData.csv",
-        )?;
-    }
-
-    if test == "input" {
-        let bool = &args[2];
-        let simulate = match bool.as_str() {
-            "true" => true,
-
-            "false" => false,
-
-            _ => panic!(), // Or whatever appropriate default value or error.
-        };
-
-        //#[cfg(not(target_os = "macos"))]
-        /*
-        raw_input::capture_raw_input(
-            &OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html"),
-            Some("./input_data_rs.json"),
-            simulate,
-        )?;
-        */
-        //#[cfg(target_os = "macos")]
-        raw_input_macos::capture_raw_input(
-            &OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html"),
-            Some("./input_data_rs.json"),
-            simulate,
-        )?;
-    }
+        //
+        Commands::Password {
+            input,
+            output,
+            sleep,
+        } => {
+            // check if browser should be opened
+            let browser = if args.browser {
+                OpenBrowser::Open("https://wutterfly.com/cont-auth/extern_input/same_origin.html")
+            } else {
+                OpenBrowser::False
+            };
+            pw_timer::pw_simulation(&browser, input.as_str(), output.as_str(), sleep)?;
+        }
+        //
+        Commands::Timer { iterations, delay } => {
+            // check if browser should be opened
+            let browser = if args.browser {
+                OpenBrowser::Open(
+                    "https://wutterfly.com/timer-precision/extern_input/same_origin.html",
+                )
+            } else {
+                OpenBrowser::False
+            };
+            browser_timer::browser_timer_sampler(&browser, iterations, delay)?;
+        }
+    };
 
     Ok(())
 }
@@ -90,4 +79,84 @@ impl<S: AsRef<str>> OpenBrowser<S> {
             }
         }
     }
+}
+
+/// Program for testing different timestamp behavior in browsers.
+#[derive(Parser, Debug)]
+#[command(about, long_about = None)]
+struct Args {
+    #[command(subcommand)]
+    command: Commands,
+
+    /// If default browser with default webpage should be opened
+    #[clap(about)]
+    #[arg(short, long)]
+    browser: bool,
+}
+
+#[derive(Debug, clap::ValueEnum, Clone)]
+pub enum Test {
+    Input,
+    Password,
+    Timer,
+}
+
+#[derive(Debug, Subcommand, Clone)]
+pub enum Commands {
+    /// Simulates user input events (mouse clicks) on a webpage
+    Timer {
+        /// Specifies how many input events should be
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 1010)]
+        iterations: usize,
+
+        /// Specifies how many seconds to wait between each input event
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 0.1)]
+        delay: f64,
+    },
+    /// Simulates password input according to given dateset (input)
+    Password {
+        /// Specifies CSV file to read input from
+        #[clap(about)]
+        #[arg(short, long, default_value = "./DSL-StrongPasswordData.csv")]
+        input: String,
+
+        /// Specifies CSV file to write output to
+        #[clap(about)]
+        #[arg(short, long, default_value = "./password_data_rs.csv")]
+        output: String,
+
+        /// Specifies how long the programm should sleep between each complete password input
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 0.2)]
+        sleep: f64,
+    },
+    /// Captures user input (listening on Key `0`) and writes timestamps to output file.
+    Input {
+        /// If input should be simulated
+        #[clap(about)]
+        #[arg(short, long, default_value_t = false)]
+        simulate: bool,
+
+        /// Specifies how many sec to wait before starting simulation (if enabled)
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 5.0)]
+        wait: f64,
+
+        /// Specifies how many seconds to wait between each input event simulatio (if enabled)
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 0.2)]
+        delay: f64,
+
+        /// Specifies how many inputs are expected and the application should exit
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 100)]
+        inputs: usize,
+
+        /// Specifies JSON file to write output to
+        #[clap(about)]
+        #[arg(short, long, default_value = "./input_data_rs.json")]
+        output: String,
+    },
 }
