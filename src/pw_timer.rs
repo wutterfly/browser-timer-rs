@@ -10,10 +10,8 @@ use enigo::{Enigo, Key, KeyboardControllable};
 
 use crate::{
     delay::{delay_busy, delay_sleep},
-    OpenBrowser,
+    OpenBrowser, DOWNLOAD_KEY,
 };
-
-const DOWNLOAD_KEY: Key = Key::Layout('Q'); // "Q" Key is not used in password
 
 pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     browser: &OpenBrowser<S>,
@@ -100,8 +98,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // every 1000 passwords, trigger download
         if i != 0 && i % 1000 == 0 {
             // signal webapp to download data
-            keyboard.key_down(DOWNLOAD_KEY);
-            keyboard.key_up(DOWNLOAD_KEY);
+            keyboard.key_click(DOWNLOAD_KEY);
             // wait a bit for download to finish
             delay_sleep(0.8);
         }
@@ -111,14 +108,14 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     }
 
     // trigger download for rest of data
-    keyboard.key_down(DOWNLOAD_KEY);
-    keyboard.key_up(DOWNLOAD_KEY);
+    keyboard.key_click(DOWNLOAD_KEY);
     Ok(())
 }
 
 /// Reads CSV-File and returns vector of rows.
 ///
-/// //  Results
+/// # Errors
+///
 /// Returns an error, if file could not be opened or failed parsing CSV-File into rows.
 fn read_data<R: AsRef<Path>>(file: R) -> Result<Vec<Row>, Box<dyn std::error::Error>> {
     // open input file

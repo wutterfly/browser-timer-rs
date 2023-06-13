@@ -1,11 +1,15 @@
 #![warn(clippy::pedantic)]
 
-mod browser_timer;
 mod delay;
+mod free_text;
 mod pw_timer;
 mod raw_input;
+mod timer_samples;
 
 use clap::{Parser, Subcommand};
+use enigo::Key;
+
+pub const DOWNLOAD_KEY: Key = Key::LeftArrow; // no input character
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // parse command line args
@@ -28,6 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             raw_input::capture_raw_input(&browser, output.as_str(), simulate, wait, delay, inputs)?;
         }
+
         //
         Commands::Password {
             input,
@@ -42,6 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             pw_timer::pw_simulation(&browser, input.as_str(), output.as_str(), sleep)?;
         }
+
         //
         Commands::Timer { iterations, delay } => {
             // check if browser should be opened
@@ -52,7 +58,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 OpenBrowser::False
             };
-            browser_timer::browser_timer_sampler(&browser, iterations, delay)?;
+            timer_samples::browser_timer_sampler(&browser, iterations, delay)?;
+        }
+
+        //
+        Commands::FreeText { input_desc } => {
+            // check if browser should be opened
+            let browser = if args.browser {
+                OpenBrowser::Open("https://wutterfly.com/free-text/same_origin.html")
+            } else {
+                OpenBrowser::False
+            };
+
+            free_text::free_text_simulation(&browser, input_desc)?;
         }
     };
 
@@ -158,5 +176,12 @@ pub enum Commands {
         #[clap(about)]
         #[arg(short, long, default_value = "./input_data_rs.json")]
         output: String,
+    },
+
+    FreeText {
+        /// Specifies JSON file listing all individual input files to read
+        #[clap(about)]
+        #[arg(short, long)]
+        input_desc: String,
     },
 }
