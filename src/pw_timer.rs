@@ -13,6 +13,8 @@ use crate::{
     OpenBrowser,
 };
 
+const DOWNLOAD_KEY: Key = Key::Layout('Q'); // "Q" Key is not used in password
+
 pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     browser: &OpenBrowser<S>,
     in_file: R,
@@ -98,8 +100,8 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // every 1000 passwords, trigger download
         if i != 0 && i % 1000 == 0 {
             // signal webapp to download data
-            keyboard.key_down(Key::Q); // "Q" Key is not used in password
-            keyboard.key_up(Key::Q);
+            keyboard.key_down(DOWNLOAD_KEY);
+            keyboard.key_up(DOWNLOAD_KEY);
             // wait a bit for download to finish
             delay_sleep(0.8);
         }
@@ -109,8 +111,8 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     }
 
     // trigger download for rest of data
-    keyboard.key_down(Key::Q);
-    keyboard.key_up(Key::Q);
+    keyboard.key_down(DOWNLOAD_KEY);
+    keyboard.key_up(DOWNLOAD_KEY);
     Ok(())
 }
 
