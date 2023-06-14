@@ -52,9 +52,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Timer { iterations, delay } => {
             // check if browser should be opened
             let browser = if args.browser {
-                OpenBrowser::Open(
-                    "https://wutterfly.com/timer-precision/extern_input/same_origin.html",
-                )
+                OpenBrowser::Open("https://wutterfly.com/timer-precision/same_origin.html")
             } else {
                 OpenBrowser::False
             };
