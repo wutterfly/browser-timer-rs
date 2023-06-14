@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             // check if browser should be opened
             let browser = if args.browser {
-                OpenBrowser::Open("https://wutterfly.com/cont-auth/extern_input/same_origin.html")
+                OpenBrowser::Open("https://wutterfly.com/cont-auth/same_origin.html")
             } else {
                 OpenBrowser::False
             };
