@@ -9,7 +9,7 @@ mod timer_samples;
 use clap::{Parser, Subcommand};
 use enigo::Key;
 
-pub const DOWNLOAD_KEY: Key = Key::LeftArrow; // no input character
+pub const DOWNLOAD_KEY: Key = Key::Escape; // no input character
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // parse command line args
