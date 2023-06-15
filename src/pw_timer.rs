@@ -18,6 +18,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     in_file: R,
     out_file: R,
     sleep: f64,
+    download: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // read all rows (1 row == 1 password)
     let rows = read_data(in_file.as_ref())?;
@@ -96,7 +97,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         );
 
         // every 1000 passwords, trigger download
-        if i != 0 && i % 1000 == 0 {
+        if i != 0 && i % download == 0 {
             // signal webapp to download data
             keyboard.key_click(DOWNLOAD_KEY);
             // wait a bit for download to finish

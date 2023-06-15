@@ -38,6 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             input,
             output,
             sleep,
+            download,
         } => {
             // check if browser should be opened
             let browser = if args.browser {
@@ -45,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 OpenBrowser::False
             };
-            pw_timer::pw_simulation(&browser, input.as_str(), output.as_str(), sleep)?;
+            pw_timer::pw_simulation(&browser, input.as_str(), output.as_str(), sleep, download)?;
         }
 
         //
@@ -147,6 +148,11 @@ pub enum Commands {
         #[clap(about)]
         #[arg(short, long, default_value_t = 0.2)]
         sleep: f64,
+
+        /// Specifies after how many password inputs a download should be triggered
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 1000)]
+        download: usize,
     },
     /// Captures user input (listening on Key `0`) and writes timestamps to output file.
     Input {
