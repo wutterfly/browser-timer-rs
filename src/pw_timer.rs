@@ -19,6 +19,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     out_file: R,
     sleep: f64,
     download: usize,
+    warmup: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // read all rows (1 row == 1 password)
     let rows = read_data(in_file.as_ref())?;
@@ -48,6 +49,15 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         total += 0.2;
     }
 
+    // how many downloads * waits
+    total += (rows.len() / download) as f64 * 0.8;
+    // if there is a rest to download
+    total += (rows.len() % download).min(1) as f64 * 0.8;
+
+    if warmup {
+        total += rows.len() as f64 * 8.0 * 0.01;
+    }
+
     // calculate time needed as hours
     let total_hours_needed = total / 3600.0;
 
@@ -60,9 +70,17 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     for (i, row) in rows.iter().enumerate() {
         // create precalculated event list, ordered by time
         let events = row.create_events();
+
+        // warmup phase
+        if warmup {
+            for _ in 0..8 {
+                keyboard.key_click(Key::Delete);
+                delay_sleep(0.01);
+            }
+        }
+
         // save password start time
         let now = Instant::now();
-
         // .tie5Roanl
         // iterate each input event for row/password
         for (i, event) in events.iter().enumerate() {
