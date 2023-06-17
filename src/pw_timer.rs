@@ -74,7 +74,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // warmup phase
         if warmup {
             for _ in 0..8 {
-                keyboard.key_click(Key::Delete);
+                keyboard.key_click(Key::Layout('Q'));
                 delay_sleep(0.01);
             }
         }
