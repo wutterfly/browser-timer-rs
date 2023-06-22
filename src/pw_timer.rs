@@ -39,6 +39,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
     // try to open default webbrowser
     browser.try_open()?;
+    println!("Waiting for user to be ready (10 sec)...");
     // wait for user to be ready
     delay_sleep(10.0);
 
