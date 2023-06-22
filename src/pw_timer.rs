@@ -55,7 +55,8 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     total += (rows.len() % download).min(1) as f64 * 0.8;
 
     if warmup {
-        total += rows.len() as f64 * 8.0 * 0.010 * 2.0;
+        total += rows.len() as f64 * 8.0 * 0.010;
+        total += rows.len() as f64 * 8.0 * 0.100;
     }
 
     // calculate time needed as hours
