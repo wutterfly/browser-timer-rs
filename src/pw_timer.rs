@@ -55,10 +55,11 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     total += (rows.len() % download).min(1) as f64 * 0.8;
 
     if warmup {
-        total += rows.len() as f64 * 8.0 * 0.01;
+        total += rows.len() as f64 * 8.0 * 0.010 * 2.0;
     }
 
     // calculate time needed as hours
+    // seconds to hours
     let total_hours_needed = total / 3600.0;
 
     println!("Total Time needed: {total_hours_needed:.2}h");
@@ -74,8 +75,10 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // warmup phase
         if warmup {
             for _ in 0..8 {
-                keyboard.key_click(Key::Layout('Q'));
-                delay_sleep(0.01);
+                keyboard.key_down(Key::Layout('Q'));
+                delay_busy(0.010);
+                keyboard.key_up(Key::Layout('Q'));
+                delay_sleep(0.010);
             }
         }
 
