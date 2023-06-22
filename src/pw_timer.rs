@@ -62,6 +62,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // seconds to hours
     let total_hours_needed = total / 3600.0;
 
+    println!("Using warmup...");
     println!("Total Time needed: {total_hours_needed:.2}h");
 
     // save total start time
