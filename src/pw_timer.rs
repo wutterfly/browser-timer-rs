@@ -78,7 +78,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
             for _ in 0..8 {
                 println!("warm up input: {:?}....", Key::Layout('Q'));
                 keyboard.key_down(Key::Layout('Q'));
-                delay_busy(0.010);
+                delay_busy(0.100);
                 keyboard.key_up(Key::Layout('Q'));
                 delay_sleep(0.010);
             }
