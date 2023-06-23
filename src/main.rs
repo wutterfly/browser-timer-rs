@@ -195,6 +195,7 @@ pub enum Commands {
         output: String,
     },
 
+    /// Simulates free-text input, based on the given input description ('./KEYSTROKE-SAMPLES-31-USERS/split_')
     FreeText {
         /// Specifies JSON file listing all individual input files to read
         #[clap(about)]
