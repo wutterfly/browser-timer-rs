@@ -10,6 +10,7 @@ use enigo::{Enigo, Key, KeyboardControllable};
 
 use crate::{delay::delay_busy, OpenBrowser, DOWNLOAD_KEY};
 
+#[allow(clippy::cast_precision_loss)]
 pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     brower: &OpenBrowser<S>,
     input_file_desc: R,
@@ -35,7 +36,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         let mut keyboard = Enigo::new();
 
         // read file to vec
-        let raw: Vec<String> = reader.lines().into_iter().collect::<Result<_, _>>()?;
+        let raw: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
 
         // create task list
         let tasks = create_task_list(&raw).unwrap();
@@ -70,6 +71,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     Ok(())
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::Error>> {
     debug_assert!(raw.len() % 2 == 0, "Always a pair of timestamp and key.");
     let mut out = Vec::with_capacity(raw.len() / 2);
@@ -122,7 +124,7 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
         // reset timestamps
         if last_uwr > c {
             let to_reset = 100_000 - last_uwr;
-            let dif = to_reset + (current - 0);
+            let dif = to_reset + current;
             diffs.push(dif);
             last = Some(c);
             continue;
@@ -159,14 +161,14 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
 fn get_input_files<R: AsRef<Path>>(
     input_file_desc: R,
 ) -> Result<Vec<BufReader<File>>, Box<dyn std::error::Error>> {
-    let file = File::open(input_file_desc.as_ref()).unwrap();
+    let file = File::open(input_file_desc.as_ref())?;
 
     let reader = BufReader::new(file);
-    let file_paths: Vec<String> = serde_json::from_reader(reader).unwrap();
+    let file_paths: Vec<String> = serde_json::from_reader(reader)?;
 
     let mut out = Vec::with_capacity(file_paths.len());
     for file_p in &file_paths {
-        let f = std::fs::File::open(file_p).unwrap();
+        let f = std::fs::File::open(file_p)?;
         out.push(BufReader::new(f));
     }
 

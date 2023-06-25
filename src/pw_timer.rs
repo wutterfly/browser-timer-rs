@@ -13,6 +13,7 @@ use crate::{
     OpenBrowser, DOWNLOAD_KEY,
 };
 
+#[allow(clippy::cast_precision_loss)]
 pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     browser: &OpenBrowser<S>,
     in_file: R,
@@ -46,18 +47,18 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // calculate total time needed
     let mut total = 0.0;
     for row in &rows {
-        total += row.should_take().as_secs_f64();
+        total += row.should_take().as_secs_f32();
         total += 0.2;
     }
 
     // how many downloads * waits
-    total += (rows.len() / download) as f64 * 0.8;
+    total += (rows.len() / download) as f32 * 0.8;
     // if there is a rest to download
-    total += (rows.len() % download).min(1) as f64 * 0.8;
+    total += (rows.len() % download).min(1) as f32 * 0.8;
 
     if warmup {
-        total += rows.len() as f64 * 8.0 * 0.010;
-        total += rows.len() as f64 * 8.0 * 0.100;
+        total += rows.len() as f32 * 8.0 * 0.010;
+        total += rows.len() as f32 * 8.0 * 0.100;
     }
 
     // calculate time needed as hours
@@ -116,7 +117,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         println!(
             "{i} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed:.2}h",
             rows.len(),
-            (i as f64 / rows.len() as f64) * 100.0,
+            (i as f32 / rows.len() as f32) * 100.0,
             start_time.elapsed().as_secs_f64() / 3600.0
         );
 

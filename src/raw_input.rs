@@ -1,5 +1,6 @@
 use std::{
     fs::File,
+    io::Write,
     path::Path,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -25,7 +26,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     browser.try_open()?;
 
     let start = Arc::new(Instant::now());
-    let start_clone = start.clone();
 
     // create vec for timing information
     let timings = Arc::new(Mutex::new(Vec::with_capacity(100)));
@@ -39,7 +39,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     let callback = move |event: Event| -> Option<Event> {
         if let EventType::KeyPress(Key::Num0) = event.event_type {
             // get time since start
-            let instant_now = start_clone.elapsed();
+            let instant_now = start.elapsed();
             let mut lock = timings_clone.lock().unwrap();
 
             // check if expected number of inputs was reached
@@ -59,7 +59,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
         println!("Waiting for input..");
         // This will block.
         if let Err(error) = grab(callback) {
-            println!("Error: {:?}", error)
+            println!("Error: {:?}", error);
         }
     });
 
@@ -91,7 +91,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     // stop simulation thread
     stopped.store(true, Ordering::Relaxed);
     // wait for simulation thread to exit
-    handle.map(|x| x.join());
+    handle.map(std::thread::JoinHandle::join);
 
     println!("Finished capturing input!");
 
@@ -102,7 +102,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     assert_eq!(timestamps.len(), inputs);
 
     // output results
-    use std::io::Write;
     let mut open_file = File::options()
         .truncate(true)
         .create(true)
@@ -118,7 +117,7 @@ fn send(event_type: &EventType) {
     match simulate(event_type) {
         Ok(()) => (),
         Err(_) => {
-            println!("We could not send {:?}", event_type);
+            println!("We could not send {event_type:?}");
         }
     }
 }
