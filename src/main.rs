@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             raw_input::capture_raw_input(&browser, output.as_str(), simulate, wait, delay, inputs)?;
         }
 
-        //
+        // Simulate typing passwords
         Commands::Password {
             input,
             output,
@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?;
         }
 
-        //
+        // Take timestamp probes every delay(sec)
         Commands::Timer { iterations, delay } => {
             // check if browser should be opened
             let browser = if args.browser {
@@ -68,8 +68,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             timer_samples::browser_timer_sampler(&browser, iterations, delay)?;
         }
 
-        //
-        Commands::FreeText { input_desc } => {
+        // Simulate typing random/free text
+        Commands::FreeText { input_desc, warmup } => {
             // check if browser should be opened
             let browser = if args.browser {
                 OpenBrowser::Open("https://wutterfly.com/free-text/same_origin.html")
@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 OpenBrowser::False
             };
 
-            free_text::free_text_simulation(&browser, input_desc)?;
+            free_text::free_text_simulation(&browser, input_desc, warmup)?;
         }
     };
 
@@ -201,5 +201,10 @@ pub enum Commands {
         #[clap(about)]
         #[arg(short, long)]
         input_desc: String,
+
+        /// Specifies if some dummy input events should be triggered before each password input
+        #[clap(about)]
+        #[arg(short, long, default_value_t = false)]
+        warmup: bool,
     },
 }

@@ -13,6 +13,7 @@ use crate::{delay::delay_busy, OpenBrowser, DOWNLOAD_KEY};
 pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     brower: &OpenBrowser<S>,
     input_file_desc: R,
+    warmup: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // get all input files
     let files = get_input_files(input_file_desc).unwrap();
@@ -22,10 +23,12 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // check if default browser should be opened
     brower.try_open().unwrap();
 
+    println!("Waiting for use to be ready (5 secs) ...");
     std::thread::sleep(Duration::from_secs_f64(5.0));
     println!("Start simulating...");
 
     let len = files.len();
+
     // read each file to task list
     for (i, reader) in files.into_iter().enumerate() {
         println!("Starting file: {i} / {len} ({:.2})", i as f32 / len as f32);
@@ -36,6 +39,13 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
         // create task list
         let tasks = create_task_list(&raw).unwrap();
+
+        // warm up
+        if warmup {
+            for _ in 0..8 {
+                keyboard.key_click(Key::Control);
+            }
+        }
 
         // execute task list
         for task in tasks {
@@ -82,11 +92,13 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
         })
         .collect::<Result<Vec<_>, _>>()?;
 
+    assert_eq!(timestamps.len() + keys.len(), raw.len());
     assert_eq!(timestamps.len(), keys.len());
 
     // calculate wait times after each key
     let mut diffs = Vec::new();
     let mut last = None::<u64>;
+
     for current in &timestamps {
         let c = *current;
 
@@ -100,19 +112,29 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
         let last_uwr = last.unwrap();
 
         // monotonic increment
-        if last.unwrap() < c {
+        if last_uwr < c {
             let dif = current - last_uwr;
             diffs.push(dif);
             last = Some(c);
+            continue;
         }
 
         // reset timestamps
-        if last.unwrap() > c {
+        if last_uwr > c {
             let to_reset = 100_000 - last_uwr;
             let dif = to_reset + (current - 0);
             diffs.push(dif);
             last = Some(c);
+            continue;
         }
+
+        // no delay to next key
+        if last_uwr == c {
+            diffs.push(0);
+            continue;
+        }
+
+        unreachable!()
     }
 
     assert_eq!(diffs.len(), keys.len());
