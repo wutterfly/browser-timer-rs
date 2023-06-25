@@ -23,6 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             wait,
             delay,
             inputs,
+            extended,
         } => {
             // check if browser should be opened
             let browser = if args.browser {
@@ -30,7 +31,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 OpenBrowser::False
             };
-            raw_input::capture_raw_input(&browser, output.as_str(), simulate, wait, delay, inputs)?;
+            raw_input::capture_raw_input(
+                &browser,
+                output.as_str(),
+                simulate,
+                wait,
+                delay,
+                inputs,
+                extended,
+            )?;
         }
 
         // Simulate typing passwords
@@ -189,10 +198,15 @@ pub enum Commands {
         #[arg(short, long, default_value_t = 100)]
         inputs: usize,
 
-        /// Specifies JSON file to write output to
+        /// Specifies CSV file to write output to
         #[clap(about)]
-        #[arg(short, long, default_value = "./input_data_rs.json")]
+        #[arg(short, long, default_value = "./input_data_rs.csv")]
         output: String,
+
+        /// Specifies if keyup events should also be simulated and captured.
+        #[clap(about)]
+        #[arg(short, long, default_value_t = false)]
+        extended: bool,
     },
 
     /// Simulates free-text input, based on the given input description ('./KEYSTROKE-SAMPLES-31-USERS/split_')
