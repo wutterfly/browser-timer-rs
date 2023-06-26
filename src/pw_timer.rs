@@ -10,7 +10,7 @@ use enigo::{Enigo, Key, KeyboardControllable};
 
 use crate::{
     delay::{delay_busy, delay_sleep},
-    OpenBrowser, DOWNLOAD_KEY,
+    Error, OpenBrowser, DOWNLOAD_KEY,
 };
 
 #[allow(clippy::cast_precision_loss)]
@@ -21,7 +21,26 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     sleep: f64,
     download: usize,
     warmup: bool,
+    mut skip: usize,
+    mut count: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Password simulation...");
+    skip = skip.min(20400);
+    count = count.min(20400);
+
+    if skip == 20400 {
+        println!("Skipping all passwords...");
+        return Ok(());
+    }
+
+    if skip + count > 20400 {
+        return Err(Box::new(Error(format!(
+            "Skip and Count parameter are greater then total password count (20400): skip: {skip} + count: {count} = {}", skip + count 
+        ))));
+    } else {
+        println!("Simulating {} passwords...", count);
+    }
+
     // read all rows (1 row == 1 password)
     let rows = read_data(in_file.as_ref())?;
     // create new keyboard
@@ -46,7 +65,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
     // calculate total time needed
     let mut total = 0.0;
-    for row in &rows {
+    for row in &rows[skip..skip + count] {
         total += row.should_take().as_secs_f64();
         total += sleep;
     }
@@ -72,7 +91,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     let start_time = Instant::now();
 
     // iterate each row/password
-    for (i, row) in rows.iter().enumerate() {
+    for (i, row) in rows.iter().skip(skip).enumerate() {
         // create precalculated event list, ordered by time
         let events = row.create_events();
 
@@ -109,14 +128,18 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // write timing data to output file
         writeln!(
             &mut output_file,
-            "{i},{should_take},{elapsed},{},{},{}",
-            row.subject, row.session_index, row.rep
+            "{},{should_take},{elapsed},{},{},{}",
+            i + skip,
+            row.subject,
+            row.session_index,
+            row.rep
         )?;
 
         // log progess
         println!(
-            "{i} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed:.2}h",
-            rows.len(),
+            "{} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed:.2}h",
+            i + 1,
+            rows[skip..skip + count].len(),
             (i as f32 / rows.len() as f32) * 100.0,
             start_time.elapsed().as_secs_f64() / 3600.0
         );
@@ -131,6 +154,10 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
         // wait a bit before beginning with next password simulation
         delay_sleep(sleep);
+
+        if (i + 1) == count {
+            break;
+        }
     }
 
     // trigger download for rest of data

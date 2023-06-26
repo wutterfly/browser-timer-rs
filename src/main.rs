@@ -49,6 +49,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             sleep,
             download,
             warmup,
+            skip,
+            count,
         } => {
             // check if browser should be opened
             let browser = if args.browser {
@@ -63,6 +65,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 sleep,
                 download,
                 warmup,
+                skip,
+                count,
             )?;
         }
 
@@ -175,6 +179,16 @@ pub enum Commands {
         #[clap(about)]
         #[arg(short, long, default_value_t = false)]
         warmup: bool,
+
+        /// Specifies how many passwords to skip before starting simulation. Valid values are (0 - 20400)
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 0)]
+        skip: usize,
+
+        /// Specifies how many passwords should be simulated. Valid values are (0 - 20400)
+        #[clap(about)]
+        #[arg(short, long, default_value_t = 20400)]
+        count: usize,
     },
     /// Captures user input (listening on Key `0`) and writes timestamps to output file.
     Input {
@@ -221,4 +235,15 @@ pub enum Commands {
         #[arg(short, long, default_value_t = false)]
         warmup: bool,
     },
+}
+
+#[derive(Debug, Clone)]
+pub struct Error(pub String);
+
+impl std::error::Error for Error {}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
