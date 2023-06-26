@@ -47,18 +47,18 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // calculate total time needed
     let mut total = 0.0;
     for row in &rows {
-        total += row.should_take().as_secs_f32();
-        total += 0.2;
+        total += row.should_take().as_secs_f64();
+        total += sleep;
     }
 
     // how many downloads * waits
-    total += (rows.len() / download) as f32 * 0.8;
+    total += (rows.len() / download) as f64 * 0.8;
     // if there is a rest to download
-    total += (rows.len() % download).min(1) as f32 * 0.8;
+    total += (rows.len() % download).min(1) as f64 * 0.8;
 
     if warmup {
-        total += rows.len() as f32 * 8.0 * 0.010;
-        total += rows.len() as f32 * 8.0 * 0.100;
+        total += rows.len() as f64 * 8.0 * 0.100;
+        total += rows.len() as f64 * 8.0 * 0.010;
     }
 
     // calculate time needed as hours
