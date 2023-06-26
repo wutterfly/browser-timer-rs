@@ -1,7 +1,7 @@
 use std::{
     fmt::Display,
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, BufWriter, Write},
     path::Path,
     time::Duration,
 };
@@ -22,20 +22,39 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
     println!("Read all input files...");
 
+    const OUT_DIR: &str = "./free-text-output";
+
+    // create output dir
+    std::fs::create_dir_all("./free-text-output")?;
+
     // check if default browser should be opened
     brower.try_open().unwrap();
-
     println!("Waiting for use to be ready (5 secs) ...");
-    std::thread::sleep(Duration::from_secs_f64(5.0));
+    std::thread::sleep(Duration::from_secs_f64(2.0));
     println!("Start simulating...");
 
     let len = files.len();
 
     // read each file to task list
-    for (i, reader) in files.into_iter().enumerate() {
-        println!("Starting file: {i} / {len} ({:.2})", i as f32 / len as f32);
+    for (i, (file, f_name)) in files.into_iter().enumerate() {
+        println!(
+            "Starting file: [{f_name}]  {i} / {len} ({:.2})%",
+            i as f32 / len as f32
+        );
         let mut keyboard = Enigo::new();
 
+        let reader = BufReader::new(file);
+
+        let path = std::path::Path::new(OUT_DIR).join(f_name);
+
+        let mut out_f = BufWriter::new(
+            std::fs::OpenOptions::new()
+                .write(true)
+                .truncate(true)
+                .append(false)
+                .create(true)
+                .open(path)?,
+        );
         // read file to vec
         let raw: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
 
@@ -58,13 +77,16 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
                 }
                 // press key
                 Task::Key(key) => {
-                    keyboard.key_click(key);
+                    keyboard.key_click(map_u8_key(key));
+                    writeln!(out_f, "{}", key)?;
                 }
             }
         }
 
         // if task list is finished, trigger download
         keyboard.key_click(DOWNLOAD_KEY);
+        out_f.flush()?;
+        drop(out_f);
 
         std::thread::sleep(Duration::from_secs_f64(2.0));
     }
@@ -91,7 +113,7 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
         .step_by(2)
         .map(|key_raw| {
             let key_u8 = key_raw.parse::<u8>()?;
-            Ok::<Key, Box<dyn std::error::Error>>(map_u8_key(key_u8))
+            Ok::<u8, Box<dyn std::error::Error>>(key_u8)
         })
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -161,7 +183,7 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
 
 fn get_input_files<R: AsRef<Path>>(
     input_file_desc: R,
-) -> Result<Vec<BufReader<File>>, Box<dyn std::error::Error>> {
+) -> Result<Vec<(File, String)>, Box<dyn std::error::Error>> {
     let file = File::open(input_file_desc.as_ref())?;
 
     let reader = BufReader::new(file);
@@ -170,24 +192,46 @@ fn get_input_files<R: AsRef<Path>>(
     let mut out = Vec::with_capacity(file_paths.len());
     for file_p in &file_paths {
         let f = std::fs::File::open(file_p)?;
-        out.push(BufReader::new(f));
+
+        let fp = file_p.split('/').into_iter().last().unwrap();
+        out.push((f, fp.to_owned()));
     }
 
     Ok(out)
 }
 
+#[inline(always)]
 fn map_u8_key(c: u8) -> Key {
-    if (65..=90).contains(&c) {
+    // uppercase letters to lowercase letters
+    if c >= 65 && c <= 90 {
         return Key::Layout((c + 32) as char);
     }
 
-    Key::Layout(c as char)
+    // lowercase letters
+    if c >= 97 && c <= 122 {
+        return Key::Layout(c as char);
+    }
+
+    // numbers
+    if c >= 48 && c <= 57 {
+        return Key::Layout(c as char);
+    }
+
+    return match c {
+        8 => Key::Backspace,
+        13 => Key::Layout(c as char),
+        32 => Key::Space,
+        44 => Key::Layout(','),
+        45 => Key::Layout('-'),
+        46 => Key::Layout('.'),
+        _ => Key::Layout('#'),
+    };
 }
 
 #[derive(Debug)]
 enum Task {
     Wait(f64),
-    Key(enigo::Key),
+    Key(u8),
 }
 
 #[derive(Debug)]

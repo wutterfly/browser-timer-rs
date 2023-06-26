@@ -137,6 +137,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
             row.session_index,
             row.rep
         )?;
+
         // log progess
         println!(
             "{} / {} ({:.2}%)  --  {:.3}h / {total_hours_needed:.3}h",
