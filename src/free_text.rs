@@ -16,6 +16,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     input_file_desc: R,
     warmup: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    println!("[Free-Text Simulation]");
     // get all input files
     let files = get_input_files(input_file_desc).unwrap();
 

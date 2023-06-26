@@ -138,7 +138,6 @@ pub enum Test {
     Password,
     Timer,
 }
-
 #[derive(Debug, Subcommand, Clone)]
 pub enum Commands {
     /// Simulates user input events (mouse clicks) on a webpage
@@ -190,6 +189,7 @@ pub enum Commands {
         #[arg(short, long, default_value_t = 20400)]
         count: usize,
     },
+
     /// Captures user input (listening on Key `0`) and writes timestamps to output file.
     Input {
         /// If input should be simulated
@@ -236,7 +236,6 @@ pub enum Commands {
         warmup: bool,
     },
 }
-
 #[derive(Debug, Clone)]
 pub struct Error(pub String);
 

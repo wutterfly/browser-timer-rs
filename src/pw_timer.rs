@@ -24,7 +24,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     mut skip: usize,
     mut count: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Password simulation...");
+    println!("[Password simulation]");
     skip = skip.min(20400);
     count = count.min(20400);
 
@@ -42,7 +42,7 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     }
 
     // read all rows (1 row == 1 password)
-    let rows = read_data(in_file.as_ref())?;
+    let mut rows = read_data(in_file.as_ref())?;
     // create new keyboard
     let mut keyboard = Enigo::new();
 
@@ -59,17 +59,15 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
     // try to open default webbrowser
     browser.try_open()?;
-    println!("Waiting for user to be ready (10 sec)...");
-    // wait for user to be ready
-    delay_sleep(10.0);
+
+    rows = rows[skip..skip + count].to_vec();
 
     // calculate total time needed
     let mut total = 0.0;
-    for row in &rows[skip..skip + count] {
+    for row in &rows {
         total += row.should_take().as_secs_f64();
         total += sleep;
     }
-
     // how many downloads * waits
     total += (rows.len() / download) as f64 * 0.8;
     // if there is a rest to download
@@ -84,14 +82,19 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // seconds to hours
     let total_hours_needed = total / 3600.0;
 
-    println!("Using warmup...");
-    println!("Total Time needed: {total_hours_needed:.2}h");
+    println!("Using warmup");
+    println!("Total Time needed: {total_hours_needed:.3}h");
+
+    println!("Waiting for user to be ready (10 sec)...");
+    // wait for user to be ready
+    delay_sleep(10.0);
+    println!("Starting...");
 
     // save total start time
     let start_time = Instant::now();
 
     // iterate each row/password
-    for (i, row) in rows.iter().skip(skip).enumerate() {
+    for (i, row) in rows.iter().enumerate() {
         // create precalculated event list, ordered by time
         let events = row.create_events();
 
@@ -134,12 +137,11 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
             row.session_index,
             row.rep
         )?;
-
         // log progess
         println!(
-            "{} / {} ({:.2}%)  --  {:.2}h / {total_hours_needed:.2}h",
+            "{} / {} ({:.2}%)  --  {:.3}h / {total_hours_needed:.3}h",
             i + 1,
-            rows[skip..skip + count].len(),
+            rows.len(),
             (i as f32 / rows.len() as f32) * 100.0,
             start_time.elapsed().as_secs_f64() / 3600.0
         );
@@ -154,10 +156,6 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
         // wait a bit before beginning with next password simulation
         delay_sleep(sleep);
-
-        if (i + 1) == count {
-            break;
-        }
     }
 
     // trigger download for rest of data
@@ -189,7 +187,7 @@ fn read_data<R: AsRef<Path>>(file: R) -> Result<Vec<Row>, Box<dyn std::error::Er
 }
 
 /// Struct describing password input
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 struct Row {
     pub subject: String,
     pub session_index: u64,

@@ -26,6 +26,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     mut inputs: usize,
     extended: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    println!("[Browser - OS differnce]");
     // check if browse should be opened
     browser.try_open()?;
 
@@ -39,6 +40,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     );
 
     if extended {
+        println!("Triggering Key Ups and Downs...");
         inputs *= 2;
     }
 
@@ -94,19 +96,22 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 
     // spawn thread to process key-events
     thread::spawn(move || {
-        println!("Waiting for input..");
         // This will block.
         if let Err(error) = grab(callback) {
             println!("Error: {:?}", error);
         }
     });
 
+    delay_sleep(1.0);
+
     // if inputs should be simulated
     let handle = if simulate {
+        println!("Triggering {inputs} inputs after {wait_before_start} sec...");
         // get the status flag
         let stopped_clone = stopped.clone();
         // wait for user to be ready
         delay_sleep(wait_before_start);
+        println!("Starting...");
 
         // spawn thread to simulate inputs
         Some(thread::spawn(move || {
@@ -127,9 +132,9 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
             }
         }))
     } else {
+        println!("Press '0' to trigger input events! {inputs} inputs needed...");
         None
     };
-
     // wait for user-input
     while !stopped.load(Ordering::Relaxed) {
         thread::sleep(Duration::from_millis(500));
