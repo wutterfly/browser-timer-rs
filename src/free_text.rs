@@ -88,7 +88,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         out_f.flush()?;
         drop(out_f);
 
-        std::thread::sleep(Duration::from_secs_f64(2.0));
+        std::thread::sleep(Duration::from_secs_f64(4.0));
     }
 
     Ok(())
