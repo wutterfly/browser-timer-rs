@@ -45,7 +45,8 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
         let reader = BufReader::new(file);
 
-        let path = std::path::Path::new(OUT_DIR).join(f_name);
+        let mut path = std::path::Path::new(OUT_DIR).join(f_name);
+        assert!(path.set_extension("csv"));
 
         let mut out_f = BufWriter::new(
             std::fs::OpenOptions::new()
@@ -55,6 +56,11 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
                 .create(true)
                 .open(path)?,
         );
+
+        // write row name
+        writeln!(out_f, "key,#")?;
+        out_f.flush()?;
+
         // read file to vec
         let raw: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
 
@@ -78,7 +84,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
                 // press key
                 Task::Key(key) => {
                     keyboard.key_click(map_u8_key(key));
-                    writeln!(out_f, "{}", key)?;
+                    writeln!(out_f, "{},", key)?;
                 }
             }
         }
