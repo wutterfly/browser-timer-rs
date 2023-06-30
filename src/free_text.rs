@@ -23,8 +23,8 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     println!("Read all input files...");
 
     const OUT_DIR: &str = "./free-text-output";
-
     // create output dir
+    std::fs::remove_dir_all("./free-text-output")?;
     std::fs::create_dir_all("./free-text-output")?;
 
     // check if default browser should be opened
