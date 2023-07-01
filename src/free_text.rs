@@ -24,7 +24,9 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
     const OUT_DIR: &str = "./free-text-output";
     // create output dir
-    std::fs::remove_dir_all("./free-text-output")?;
+    if std::fs::remove_dir_all("./free-text-output").is_err() {
+        println!("Output folder not removed")
+    }
     std::fs::create_dir_all("./free-text-output")?;
 
     // check if default browser should be opened
