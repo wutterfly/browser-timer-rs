@@ -58,7 +58,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         );
 
         // write row name
-        writeln!(out_f, "key,#")?;
+        writeln!(out_f, "key,")?;
         out_f.flush()?;
 
         // read file to vec
