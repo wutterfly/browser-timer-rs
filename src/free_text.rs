@@ -67,7 +67,8 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         let raw: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
 
         // create task list
-        let tasks = create_task_list(&raw).unwrap();
+        let tasks = create_task_list(&raw, &mut out_f).unwrap();
+        out_f.flush()?;
 
         // warm up
         if warmup {
@@ -85,8 +86,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
                 }
                 // press key
                 Task::Key(key) => {
-                    keyboard.key_click(map_u8_key(key));
-                    writeln!(out_f, "{},", key)?;
+                    keyboard.key_click(key);
                 }
             }
         }
@@ -103,7 +103,10 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
 }
 
 #[allow(clippy::cast_precision_loss)]
-fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::Error>> {
+fn create_task_list(
+    raw: &Vec<String>,
+    key_file: &mut BufWriter<File>,
+) -> Result<Vec<Task>, Box<dyn std::error::Error>> {
     debug_assert!(raw.len() % 2 == 0, "Always a pair of timestamp and key.");
     let mut out = Vec::with_capacity(raw.len() / 2);
 
@@ -121,7 +124,8 @@ fn create_task_list(raw: &Vec<String>) -> Result<Vec<Task>, Box<dyn std::error::
         .step_by(2)
         .map(|key_raw| {
             let key_u8 = key_raw.parse::<u8>()?;
-            Ok::<u8, Box<dyn std::error::Error>>(key_u8)
+            writeln!(key_file, "{},", key_u8)?;
+            Ok::<Key, Box<dyn std::error::Error>>(map_u8_key(key_u8))
         })
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -239,7 +243,7 @@ fn map_u8_key(c: u8) -> Key {
 #[derive(Debug)]
 enum Task {
     Wait(f64),
-    Key(u8),
+    Key(Key),
 }
 
 #[derive(Debug)]
