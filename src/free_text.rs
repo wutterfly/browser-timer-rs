@@ -32,7 +32,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // check if default browser should be opened
     brower.try_open().unwrap();
     println!("Waiting for use to be ready (5 secs) ...");
-    std::thread::sleep(Duration::from_secs_f64(0.0));
+    std::thread::sleep(Duration::from_secs_f64(5.0));
     println!("Start simulating...");
 
     let len = files.len();
