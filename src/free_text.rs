@@ -3,7 +3,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},
     path::Path,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use enigo::{Enigo, Key, KeyboardControllable};
@@ -32,7 +32,7 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // check if default browser should be opened
     brower.try_open().unwrap();
     println!("Waiting for use to be ready (5 secs) ...");
-    std::thread::sleep(Duration::from_secs_f64(5.0));
+    std::thread::sleep(Duration::from_secs_f64(0.0));
     println!("Start simulating...");
 
     let len = files.len();
@@ -78,17 +78,29 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         }
 
         // execute task list
-        for task in tasks {
+        let start = Instant::now();
+        let mut total = 0f64;
+        for (i, task) in tasks.into_iter().enumerate() {
             match task {
                 // wait
                 Task::Wait(dur) => {
                     delay_busy(dur);
+                    total += dur;
                 }
                 // press key
                 Task::Key(key) => {
-                    keyboard.key_click(key);
+                    keyboard.key_down(key);
+                    keyboard.key_up(key);
                 }
             }
+
+            // check that simulation is in acceptable range
+            const DIVIATION: f64 = 0.003;
+            let elapsed = start.elapsed().as_secs_f64();
+            assert!(
+                elapsed >= total - ((i + 1) as f64 * DIVIATION)
+                    && elapsed <= total + ((i + 1) as f64 * DIVIATION)
+            );
         }
 
         // if task list is finished, trigger download
