@@ -40,8 +40,8 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     // read each file to task list
     for (i, (file, f_name)) in files.into_iter().enumerate() {
         println!(
-            "Starting file: [{f_name}]  {i} / {len} ({:.2})%",
-            i as f32 / len as f32
+            "Starting file: [{f_name}]  {i} / {len} ({:.2}%)",
+            (i as f32 / len as f32) * 100.0
         );
         let mut keyboard = Enigo::new();
 
@@ -68,7 +68,6 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
         // create task list
         let tasks = create_task_list(&raw, &mut out_f).unwrap();
-        out_f.flush()?;
 
         // warm up
         if warmup {
@@ -145,7 +144,7 @@ fn create_task_list(
             Ok::<Key, Box<dyn std::error::Error>>(map_u8_key(key_u8))
         })
         .collect::<Result<Vec<_>, _>>()?;
-
+    key_file.flush()?;
     assert_eq!(timestamps.len() + keys.len(), raw.len());
     assert_eq!(timestamps.len(), keys.len());
 
