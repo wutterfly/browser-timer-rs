@@ -73,34 +73,42 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // warm up
         if warmup {
             for _ in 0..8 {
-                keyboard.key_click(Key::Control);
+                keyboard.key_down(Key::Control);
+                keyboard.key_up(Key::Control);
             }
         }
 
         // execute task list
-        let start = Instant::now();
-        let mut total = 0f64;
-        for (i, task) in tasks.into_iter().enumerate() {
+        let mut last = Option::<Instant>::None;
+        let mut last_waited = 0.0;
+        for task in tasks.into_iter() {
             match task {
                 // wait
                 Task::Wait(dur) => {
                     delay_busy(dur);
-                    total += dur;
+
+                    last_waited = dur;
                 }
                 // press key
                 Task::Key(key) => {
                     keyboard.key_down(key);
                     keyboard.key_up(key);
+
+                    let last_elapsed = if let Some(l) = last {
+                        let out = l.elapsed().as_secs_f64();
+                        last = Some(Instant::now());
+                        out
+                    } else {
+                        last = Some(Instant::now());
+                        0.0
+                    };
+                    assert!(
+                        (last_elapsed - last_waited).abs() <= 0.001,
+                        "Timing was unprecise. Diviation: {} secs",
+                        (last_waited - last_elapsed).abs()
+                    );
                 }
             }
-
-            // check that simulation is in acceptable range
-            const DIVIATION: f64 = 0.003;
-            let elapsed = start.elapsed().as_secs_f64();
-            assert!(
-                elapsed >= total - ((i + 1) as f64 * DIVIATION)
-                    && elapsed <= total + ((i + 1) as f64 * DIVIATION)
-            );
         }
 
         // if task list is finished, trigger download
