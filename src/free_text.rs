@@ -102,11 +102,8 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
                         last = Some(Instant::now());
                         0.0
                     };
-                    assert!(
-                        (last_elapsed - last_waited).abs() <= 0.001,
-                        "Timing was unprecise. Diviation: {} secs",
-                        (last_waited - last_elapsed).abs()
-                    );
+
+                    debug_assert!((last_elapsed - last_waited).abs() <= 0.001);
                 }
             }
         }
