@@ -72,8 +72,8 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // warm up
         if warmup {
             for _ in 0..8 {
-                keyboard.key_down(Key::Control);
-                keyboard.key_up(Key::Control);
+                keyboard.key_down(Key::Backspace);
+                keyboard.key_up(Key::Backspace);
             }
         }
 
