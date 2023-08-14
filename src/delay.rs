@@ -42,12 +42,12 @@ pub fn delay_sleep(dur: f64) -> Duration {
 #[test]
 fn test_delay_busy_precision_10_microseconds() {
     let dur = Duration::from_millis(10);
+    let range = dur.as_micros() - 10..dur.as_micros() + 10;
     for _ in 0..100 {
         let now = Instant::now();
         delay_busy(0.01);
         let elapsed = now.elapsed();
 
-        let range = dur.as_micros() - 10..dur.as_micros() + 10;
         assert!(range.contains(&elapsed.as_micros()));
     }
 }

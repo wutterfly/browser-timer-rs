@@ -115,14 +115,16 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 
         // spawn thread to simulate inputs
         Some(thread::spawn(move || {
+            let mut rng = rand::thread_rng();
             // while should not exit
             while !stopped_clone.load(Ordering::Relaxed) {
                 // send "0" key down events
                 send(&EventType::KeyPress(Key::Num0));
 
                 if extended {
-                    // hold key down for 10ms
-                    delay_busy(0.01);
+                    // hold key down between 90ms - 200ms
+                    let rand_num: f64 = rand::Rng::gen_range(&mut rng, 0.090..0.200);
+                    delay_busy(rand_num);
 
                     send(&EventType::KeyRelease(Key::Num0));
                 }
