@@ -10,6 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use enigo::{Enigo, KeyboardControllable};
 use rdev::{grab, simulate, Event, EventType, Key};
 
 use crate::{
@@ -27,7 +28,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     extended: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("[Browser - OS differnce]");
-    // check if browse should be opened
+    // check if browser should be opened
     browser.try_open()?;
 
     // output results
@@ -44,10 +45,12 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
         inputs *= 2;
     }
 
+    let mut enigo = Enigo::new();
+
     let start = Arc::new(Instant::now());
 
     // create vec for timing information
-    let timings = Arc::new(Mutex::new(Vec::with_capacity(100)));
+    let timings = Arc::new(Mutex::new(Vec::with_capacity(inputs)));
     let timings_clone = timings.clone();
 
     // create flag if simulation should be stopped
@@ -56,7 +59,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 
     // register callback on "0" Key
     let callback = move |event: Event| -> Option<Event> {
-        if let EventType::KeyPress(Key::Num0) = event.event_type {
+        if let EventType::KeyPress(k) = event.event_type {
             // get time since start
             let instant_now = start.elapsed();
             let mut lock = timings_clone.lock().unwrap();
@@ -67,16 +70,15 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
                 stopped_clone.store(true, Ordering::Relaxed);
             } else {
                 // push timestamp to list
-                lock.push(Captured::KeyDown(instant_now.as_secs_f64()));
+                lock.push(Captured::KeyDown(instant_now.as_secs_f64(), k));
             }
         }
 
         if !extended {
             return Some(event);
         }
-        debug_assert!(extended);
 
-        if let EventType::KeyRelease(Key::Num0) = event.event_type {
+        if let EventType::KeyRelease(k) = event.event_type {
             // get time since start
             let instant_now = start.elapsed();
             let mut lock = timings_clone.lock().unwrap();
@@ -87,7 +89,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
                 stopped_clone.store(true, Ordering::Relaxed);
             } else {
                 // push timestamp to list
-                lock.push(Captured::KeyUp(instant_now.as_secs_f64()));
+                lock.push(Captured::KeyUp(instant_now.as_secs_f64(), k));
             }
         }
 
@@ -119,14 +121,16 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
             // while should not exit
             while !stopped_clone.load(Ordering::Relaxed) {
                 // send "0" key down events
-                send(&EventType::KeyPress(Key::Num0));
+                //send(&EventType::KeyPress(Key::Num0));
+                enigo.key_down(enigo::Key::Num0);
 
                 if extended {
                     // hold key down between 90ms - 200ms
                     let rand_num: f64 = rand::Rng::gen_range(&mut rng, 0.090..0.200);
                     delay_busy(rand_num);
 
-                    send(&EventType::KeyRelease(Key::Num0));
+                    //send(&EventType::KeyRelease(Key::Num0));
+                    enigo.key_up(enigo::Key::Num0);
                 }
 
                 // wait for specified delay (doesn't have to super precise)
@@ -137,6 +141,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
         println!("Press '0' to trigger input events! {inputs} inputs needed...");
         None
     };
+
     // wait for user-input
     while !stopped.load(Ordering::Relaxed) {
         thread::sleep(Duration::from_millis(500));
@@ -152,17 +157,16 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     // take list from mutex
     let timestamps = std::mem::take(&mut *timings.lock().unwrap());
 
-    //
+    // check for correct length
     assert_eq!(timestamps.len(), inputs);
 
     // output results
-
-    writeln!(open_file, "timestamp,type")?;
+    writeln!(open_file, "timestamp,key,type")?;
 
     for timestamp in timestamps {
         match timestamp {
-            Captured::KeyDown(t) => writeln!(open_file, "{t},keydown")?,
-            Captured::KeyUp(t) => writeln!(open_file, "{t},keyup")?,
+            Captured::KeyDown(t, k) => writeln!(open_file, "{t},{k:?},keydown")?,
+            Captured::KeyUp(t, k) => writeln!(open_file, "{t},{k:?},keyup")?,
         }
     }
 
@@ -181,15 +185,15 @@ fn send(event_type: &EventType) {
 
 #[derive(Clone, Copy)]
 enum Captured {
-    KeyDown(f64),
-    KeyUp(f64),
+    KeyDown(f64, Key),
+    KeyUp(f64, Key),
 }
 
 impl std::fmt::Debug for Captured {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::KeyDown(arg0) => write!(f, "{arg0}"),
-            Self::KeyUp(arg0) => write!(f, "{arg0}"),
+            Self::KeyDown(arg0, arg1) => write!(f, "{arg0}, {arg1:?}, keydown "),
+            Self::KeyUp(arg0, arg1) => write!(f, "{arg0}, {arg1:?}, keyup"),
         }
     }
 }
