@@ -45,12 +45,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Simulate typing passwords
         Commands::Password {
             input,
-            output,
+            mut output,
             sleep,
             download,
             warmup,
-            skip,
-            count,
+            mut skip,
+            mut count,
+            part,
         } => {
             // check if browser should be opened
             let browser = if args.browser {
@@ -58,6 +59,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 OpenBrowser::False
             };
+
+            if let Some(part) = part {
+                match part {
+                    // [0..5300]
+                    1 => {
+                        skip = 0;
+                        count = 5_300;
+                        output = "./password_data_rs.csv (1)".into();
+                    }
+                    // [5300.. 10400]
+                    2 => {
+                        skip = 5_300;
+                        count = 5_100;
+                        output = "./password_data_rs.csv (2)".into();
+                    }
+                    // [10400..15000]
+                    3 => {
+                        skip = 10_400;
+                        count = 4_600;
+                        output = "./password_data_rs.csv (3)".into();
+                    }
+                    // [15000..20400]
+                    4 => {
+                        skip = 15_000;
+                        count = 5_400;
+                        output = "./password_data_rs.csv (4)".into();
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
             pw_timer::pw_simulation(
                 &browser,
                 input.as_str(),
@@ -138,6 +170,7 @@ pub enum Test {
     Password,
     Timer,
 }
+
 #[derive(Debug, Subcommand, Clone)]
 pub enum Commands {
     /// Simulates user input events (mouse clicks) on a webpage
@@ -188,6 +221,12 @@ pub enum Commands {
         #[clap(about)]
         #[arg(short, long, default_value_t = 20400)]
         count: usize,
+
+        /// Shortcut to using 'skip' and 'count' args.
+        /// Valid values are, [1, 2, 3, 4].
+        #[clap(about, value_parser = validate_part_input)]
+        #[arg(short, long)]
+        part: Option<u8>,
     },
 
     /// Captures user input (listening on Key `0`) and writes timestamps to output file.
@@ -236,6 +275,7 @@ pub enum Commands {
         warmup: bool,
     },
 }
+
 #[derive(Debug, Clone)]
 pub struct Error(pub String);
 
@@ -244,5 +284,18 @@ impl std::error::Error for Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+fn validate_part_input(p: &str) -> Result<u8, String> {
+    let part = p
+        .parse::<u8>()
+        .map_err(|_| "Invalid part argument. Has to be out of [1, 2, 3, 4]")?;
+    match part {
+        1 => Ok(1),
+        2 => Ok(2),
+        3 => Ok(3),
+        4 => Ok(4),
+        _ => Err("Invalid part argument. Has to be out of [1, 2, 3, 4]".into()),
     }
 }

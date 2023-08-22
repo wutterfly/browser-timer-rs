@@ -122,7 +122,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
             while !stopped_clone.load(Ordering::Relaxed) {
                 // send "0" key down events
                 //send(&EventType::KeyPress(Key::Num0));
-                enigo.key_down(enigo::Key::Num0);
+                enigo.key_down(enigo::Key::Layout('0'));
 
                 if extended {
                     // hold key down between 90ms - 200ms
@@ -130,7 +130,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
                     delay_busy(rand_num);
 
                     //send(&EventType::KeyRelease(Key::Num0));
-                    enigo.key_up(enigo::Key::Num0);
+                    enigo.key_up(enigo::Key::Layout('0'));
                 }
 
                 // wait for specified delay (doesn't have to super precise)
