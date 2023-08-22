@@ -11,7 +11,7 @@ use std::{
 };
 
 use enigo::{Enigo, KeyboardControllable};
-use rdev::{grab, simulate, Event, EventType, Key};
+use rdev::{grab, Event, EventType, Key};
 
 use crate::{
     delay::{delay_busy, delay_sleep},
@@ -173,6 +173,8 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     Ok(())
 }
 
+/*
+
 #[inline(always)]
 fn send(event_type: &EventType) {
     match simulate(event_type) {
@@ -182,6 +184,7 @@ fn send(event_type: &EventType) {
         }
     }
 }
+ */
 
 #[derive(Clone, Copy)]
 enum Captured {
