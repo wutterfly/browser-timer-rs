@@ -38,7 +38,12 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
             "Skip and Count parameter are greater then total password count (20400): skip: {skip} + count: {count} = {}", skip + count 
         ))));
     } else {
-        println!("Simulating {} passwords...", count);
+        println!(
+            "Simulating {} passwords. [{}..{}]",
+            count,
+            skip,
+            skip + count
+        );
     }
 
     // read all rows (1 row == 1 password)
