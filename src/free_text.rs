@@ -90,8 +90,17 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
                 }
                 // press key
                 Task::Key(key) => {
-                    keyboard.key_down(key);
-                    keyboard.key_up(key);
+                    #[cfg(target_os = "macos")]
+                    {
+                        keyboard.key_down(Key::Layout('a'));
+                        keyboard.key_up(Key::Layout('a'));
+                    }
+
+                    #[cfg(not(target_os = "macos"))]
+                    {
+                        keyboard.key_down(key);
+                        keyboard.key_up(key);
+                    }
 
                     let last_elapsed = if let Some(l) = last {
                         let out = l.elapsed().as_secs_f64();
@@ -230,36 +239,30 @@ fn get_input_files<R: AsRef<Path>>(
 
 #[inline(always)]
 fn map_u8_key(c: u8) -> Key {
-    #[cfg(target_os = "macos")]
-    return Key::Layout('a');
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        // uppercase letters to lowercase letters
-        if c >= 65 && c <= 90 {
-            return Key::Layout((c + 32) as char);
-        }
-
-        // lowercase letters
-        if c >= 97 && c <= 122 {
-            return Key::Layout(c as char);
-        }
-
-        // numbers
-        if c >= 48 && c <= 57 {
-            return Key::Layout(c as char);
-        }
-
-        return match c {
-            8 => Key::Backspace,
-            13 => Key::Layout(c as char),
-            32 => Key::Space,
-            44 => Key::Layout(','),
-            45 => Key::Layout('-'),
-            46 => Key::Layout('.'),
-            _ => Key::Layout('#'),
-        };
+    // uppercase letters to lowercase letters
+    if c >= 65 && c <= 90 {
+        return Key::Layout((c + 32) as char);
     }
+
+    // lowercase letters
+    if c >= 97 && c <= 122 {
+        return Key::Layout(c as char);
+    }
+
+    // numbers
+    if c >= 48 && c <= 57 {
+        return Key::Layout(c as char);
+    }
+
+    return match c {
+        8 => Key::Backspace,
+        13 => Key::Layout(c as char),
+        32 => Key::Space,
+        44 => Key::Layout(','),
+        45 => Key::Layout('-'),
+        46 => Key::Layout('.'),
+        _ => Key::Layout('#'),
+    };
 }
 
 #[derive(Debug)]
