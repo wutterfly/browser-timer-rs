@@ -32,6 +32,10 @@ pub fn browser_timer_sampler<S: AsRef<str>>(
         // enigo.mouse_click(MouseButton::Left);
 
         // simulate input
+        #[cfg(target_os = "macos")]
+        enigo.key_down(Key::Layout('a'));
+
+        #[cfg(not(target_os = "macos"))]
         enigo.key_down(KEYS[i % KEYS.len()])
     }
 

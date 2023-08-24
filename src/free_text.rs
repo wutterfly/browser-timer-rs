@@ -230,30 +230,36 @@ fn get_input_files<R: AsRef<Path>>(
 
 #[inline(always)]
 fn map_u8_key(c: u8) -> Key {
-    // uppercase letters to lowercase letters
-    if c >= 65 && c <= 90 {
-        return Key::Layout((c + 32) as char);
-    }
+    #[cfg(target_os = "macos")]
+    return Key::Layout('a');
 
-    // lowercase letters
-    if c >= 97 && c <= 122 {
-        return Key::Layout(c as char);
-    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        // uppercase letters to lowercase letters
+        if c >= 65 && c <= 90 {
+            return Key::Layout((c + 32) as char);
+        }
 
-    // numbers
-    if c >= 48 && c <= 57 {
-        return Key::Layout(c as char);
-    }
+        // lowercase letters
+        if c >= 97 && c <= 122 {
+            return Key::Layout(c as char);
+        }
 
-    return match c {
-        8 => Key::Backspace,
-        13 => Key::Layout(c as char),
-        32 => Key::Space,
-        44 => Key::Layout(','),
-        45 => Key::Layout('-'),
-        46 => Key::Layout('.'),
-        _ => Key::Layout('#'),
-    };
+        // numbers
+        if c >= 48 && c <= 57 {
+            return Key::Layout(c as char);
+        }
+
+        return match c {
+            8 => Key::Backspace,
+            13 => Key::Layout(c as char),
+            32 => Key::Space,
+            44 => Key::Layout(','),
+            45 => Key::Layout('-'),
+            46 => Key::Layout('.'),
+            _ => Key::Layout('#'),
+        };
+    }
 }
 
 #[derive(Debug)]
