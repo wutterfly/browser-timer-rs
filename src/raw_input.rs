@@ -45,8 +45,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
         inputs *= 2;
     }
 
-    let mut enigo = Enigo::new();
-
     let start = Arc::new(Instant::now());
 
     // create vec for timing information
@@ -117,7 +115,9 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 
         // spawn thread to simulate inputs
         Some(thread::spawn(move || {
+            let mut enigo = Enigo::new();
             let mut rng = rand::thread_rng();
+
             // while should not exit
             while !stopped_clone.load(Ordering::Relaxed) {
                 // send "0" key down events
