@@ -307,8 +307,8 @@ impl Row {
 
         // R
         events.push(Event::new_down(timestamp, Key::Shift));
-        events.push(Event::new_down(timestamp, Key::Layout('r')));
-        events.push(Event::new_up(timestamp, Key::Shift));
+        events.push(Event::new_down(timestamp + 0.00001, Key::Layout('r')));
+        events.push(Event::new_up(timestamp + 0.00002, Key::Shift));
         timestamp += self.h_shift_r;
         events.push(Event::new_up(timestamp, Key::Layout('r')));
 
