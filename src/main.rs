@@ -199,7 +199,7 @@ pub enum Commands {
 
         /// Specifies how long the programm should sleep between each complete password input
         #[clap(about)]
-        #[arg(short, long, default_value_t = 0.2)]
+        #[arg(short, long, default_value_t = 1.5)]
         sleep: f64,
 
         /// Specifies after how many password inputs a download should be triggered
@@ -269,7 +269,7 @@ pub enum Commands {
         #[arg(short, long)]
         input_desc: String,
 
-        /// Specifies if some dummy input events should be triggered before each password input
+        /// Specifies if some dummy input events should be triggered before each text input
         #[clap(about)]
         #[arg(short, long, default_value_t = false)]
         warmup: bool,

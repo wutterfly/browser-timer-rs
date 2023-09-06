@@ -354,24 +354,20 @@ impl KeyboardControllable for Enigo {
             event.set_string(&string);
             event.post(CGEventTapLocation::HID);
         }
-        thread::sleep(Duration::from_millis(2));
     }
 
     fn key_click(&mut self, key: Key) {
         let keycode = self.key_to_keycode(key);
-        //thread::sleep(Duration::from_millis(20));
         let event = CGEvent::new_keyboard_event(self.event_source.clone(), keycode, true)
             .expect("Failed creating event");
         event.post(CGEventTapLocation::HID);
 
-        thread::sleep(Duration::from_millis(20));
         let event = CGEvent::new_keyboard_event(self.event_source.clone(), keycode, false)
             .expect("Failed creating event");
         event.post(CGEventTapLocation::HID);
     }
 
     fn key_down(&mut self, key: Key) {
-        //thread::sleep(Duration::from_millis(20));
         let event =
             CGEvent::new_keyboard_event(self.event_source.clone(), self.key_to_keycode(key), true)
                 .expect("Failed creating event");
@@ -379,7 +375,6 @@ impl KeyboardControllable for Enigo {
     }
 
     fn key_up(&mut self, key: Key) {
-        //thread::sleep(Duration::from_millis(20));
         let event =
             CGEvent::new_keyboard_event(self.event_source.clone(), self.key_to_keycode(key), false)
                 .expect("Failed creating event");

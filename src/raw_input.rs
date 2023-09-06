@@ -63,12 +63,11 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
             let mut lock = timings_clone.lock().unwrap();
 
             // check if expected number of inputs was reached
-            if lock.len() >= inputs {
-                // signal application should exit
-                stopped_clone.store(true, Ordering::Relaxed);
-            } else {
+            if lock.len() < inputs {
                 // push timestamp to list
                 lock.push(Captured::KeyDown(instant_now.as_secs_f64(), k));
+            } else {
+                stopped_clone.store(true, Ordering::Relaxed);
             }
         }
 
@@ -82,10 +81,7 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
             let mut lock = timings_clone.lock().unwrap();
 
             // check if expected number of inputs was reached
-            if lock.len() >= inputs {
-                // signal application should exit
-                stopped_clone.store(true, Ordering::Relaxed);
-            } else {
+            if lock.len() < inputs {
                 // push timestamp to list
                 lock.push(Captured::KeyUp(instant_now.as_secs_f64(), k));
             }
@@ -107,8 +103,9 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     // if inputs should be simulated
     let handle = if simulate {
         println!("Triggering {inputs} inputs after {wait_before_start} sec...");
-        // get the status flag
+
         let stopped_clone = stopped.clone();
+
         // wait for user to be ready
         delay_sleep(wait_before_start);
         println!("Starting...");
@@ -118,10 +115,11 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
             let mut enigo = Enigo::new();
             let mut rng = rand::thread_rng();
 
+            let mut counter = 0;
+
             // while should not exit
-            while !stopped_clone.load(Ordering::Relaxed) {
+            while counter < inputs {
                 // send "0" key down events
-                //send(&EventType::KeyPress(Key::Num0));
                 enigo.key_down(enigo::Key::Layout('0'));
 
                 if extended {
@@ -129,13 +127,16 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
                     let rand_num: f64 = rand::Rng::gen_range(&mut rng, 0.090..0.200);
                     delay_busy(rand_num);
 
-                    //send(&EventType::KeyRelease(Key::Num0));
                     enigo.key_up(enigo::Key::Layout('0'));
+                    counter += 1;
                 }
 
                 // wait for specified delay (doesn't have to super precise)
                 delay_sleep(delay);
+                counter += 1;
             }
+
+            stopped_clone.store(true, Ordering::Relaxed);
         }))
     } else {
         println!("Press '0' to trigger input events! {inputs} inputs needed...");
@@ -147,8 +148,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
         thread::sleep(Duration::from_millis(500));
     }
 
-    // stop simulation thread
-    stopped.store(true, Ordering::Relaxed);
     // wait for simulation thread to exit
     handle.map(std::thread::JoinHandle::join);
 
@@ -172,19 +171,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
 
     Ok(())
 }
-
-/*
-
-#[inline(always)]
-fn send(event_type: &EventType) {
-    match simulate(event_type) {
-        Ok(()) => (),
-        Err(_) => {
-            println!("We could not send {event_type:?}");
-        }
-    }
-}
- */
 
 #[derive(Clone, Copy)]
 enum Captured {

@@ -155,9 +155,10 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
         // every 1000 passwords, trigger download
         if i != 0 && i % download == 0 {
             // signal webapp to download data
-            keyboard.key_click(DOWNLOAD_KEY);
+            keyboard.key_down(DOWNLOAD_KEY);
+            keyboard.key_up(DOWNLOAD_KEY);
             // wait a bit for download to finish
-            delay_sleep(0.8);
+            delay_sleep(1.5);
         }
 
         // wait a bit before beginning with next password simulation
@@ -165,7 +166,8 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
     }
 
     // trigger download for rest of data
-    keyboard.key_click(DOWNLOAD_KEY);
+    keyboard.key_down(DOWNLOAD_KEY);
+    keyboard.key_up(DOWNLOAD_KEY);
     Ok(())
 }
 
@@ -307,8 +309,8 @@ impl Row {
 
         // R
         events.push(Event::new_down(timestamp, Key::Shift));
-        events.push(Event::new_down(timestamp + 0.00001, Key::Layout('r')));
-        events.push(Event::new_up(timestamp + 0.00002, Key::Shift));
+        events.push(Event::new_down(timestamp + 0.0000001, Key::Layout('r')));
+        events.push(Event::new_up(timestamp + 0.0000002, Key::Shift));
         timestamp += self.h_shift_r;
         events.push(Event::new_up(timestamp, Key::Layout('r')));
 
