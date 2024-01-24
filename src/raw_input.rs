@@ -13,13 +13,9 @@ use std::{
 use enigo::{Enigo, KeyboardControllable};
 use rdev::{grab, Event, EventType, Key};
 
-use crate::{
-    delay::{delay_busy, delay_sleep},
-    OpenBrowser,
-};
+use crate::delay::{delay_busy, delay_sleep};
 
-pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
-    browser: &OpenBrowser<S>,
+pub fn capture_raw_input<R: AsRef<Path>>(
     file: R,
     simulate: bool,
     wait_before_start: f64,
@@ -28,8 +24,6 @@ pub fn capture_raw_input<S: AsRef<str>, R: AsRef<Path>>(
     extended: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("[Browser - OS differnce]");
-    // check if browser should be opened
-    browser.try_open()?;
 
     // output results
     let mut open_file = BufWriter::new(

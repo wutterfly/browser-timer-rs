@@ -2,6 +2,7 @@
 
 mod delay;
 mod free_text;
+mod live;
 mod pw_timer;
 mod raw_input;
 mod timer_samples;
@@ -25,21 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             inputs,
             extended,
         } => {
-            // check if browser should be opened
-            let browser = if args.browser {
-                OpenBrowser::Open("https://wutterfly.com/browser/browser_test.html")
-            } else {
-                OpenBrowser::False
-            };
-            raw_input::capture_raw_input(
-                &browser,
-                output.as_str(),
-                simulate,
-                wait,
-                delay,
-                inputs,
-                extended,
-            )?;
+            raw_input::capture_raw_input(output.as_str(), simulate, wait, delay, inputs, extended)?;
         }
 
         // Simulate typing passwords
@@ -53,13 +40,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             mut count,
             part,
         } => {
-            // check if browser should be opened
-            let browser = if args.browser {
-                OpenBrowser::Open("https://wutterfly.com/cont-auth/same_origin.html")
-            } else {
-                OpenBrowser::False
-            };
-
             if let Some(part) = part {
                 match part {
                     // [0..5300]
@@ -91,7 +71,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
 
             pw_timer::pw_simulation(
-                &browser,
                 input.as_str(),
                 output.as_str(),
                 sleep,
@@ -104,51 +83,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Take timestamp probes every delay(sec)
         Commands::Timer { iterations, delay } => {
-            // check if browser should be opened
-            let browser = if args.browser {
-                OpenBrowser::Open("https://wutterfly.com/timer-precision/same_origin.html")
-            } else {
-                OpenBrowser::False
-            };
-            timer_samples::browser_timer_sampler(&browser, iterations, delay)?;
+            timer_samples::browser_timer_sampler(iterations, delay)?;
         }
 
         // Simulate typing random/free text
         Commands::FreeText { input_desc, warmup } => {
-            // check if browser should be opened
-            let browser = if args.browser {
-                OpenBrowser::Open("https://wutterfly.com/free-text/same_origin.html")
-            } else {
-                OpenBrowser::False
-            };
-
-            free_text::free_text_simulation(&browser, input_desc, warmup)?;
+            free_text::free_text_simulation(input_desc, warmup)?;
         }
+
+        // Simulate Freetext typing to watch live
+        Commands::Live { input } => live::live_simulation(input.as_str())?,
     };
 
     Ok(())
-}
-
-#[derive(Debug)]
-pub enum OpenBrowser<S: AsRef<str>> {
-    False,
-    Open(S),
-}
-
-impl<S: AsRef<str>> OpenBrowser<S> {
-    /// Trys to open a URL inside the systems default browser.
-    ///
-    /// # Errors
-    /// Returns an error if website failed to open.
-    pub fn try_open(&self) -> Result<(), Box<dyn std::error::Error>> {
-        match self {
-            Self::False => Ok(()),
-            Self::Open(s) => {
-                webbrowser::open(s.as_ref())?;
-                Ok(())
-            }
-        }
-    }
 }
 
 /// Program for testing different timestamp behavior in browsers.
@@ -162,13 +109,6 @@ struct Args {
     #[clap(about)]
     #[arg(short, long)]
     browser: bool,
-}
-
-#[derive(Debug, clap::ValueEnum, Clone)]
-pub enum Test {
-    Input,
-    Password,
-    Timer,
 }
 
 #[derive(Debug, Subcommand, Clone)]
@@ -273,6 +213,14 @@ pub enum Commands {
         #[clap(about)]
         #[arg(short, long, default_value_t = false)]
         warmup: bool,
+    },
+
+    /// Simulates free-text input, based on the given input description ('./KEYSTROKE-SAMPLES-31-USERS/split_')
+    Live {
+        /// Specifies file with keystroke data
+        #[clap(about)]
+        #[arg(short, long)]
+        input: String,
     },
 }
 

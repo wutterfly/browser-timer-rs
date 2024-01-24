@@ -1,18 +1,13 @@
 use enigo::{Enigo, Key, KeyboardControllable}; //MouseButton, MouseControllable};
 
-use crate::{
-    delay::{delay_busy, delay_sleep},
-    OpenBrowser,
-};
+use crate::delay::{delay_busy, delay_sleep};
 
-pub fn browser_timer_sampler<S: AsRef<str>>(
-    browser: &OpenBrowser<S>,
+pub fn browser_timer_sampler(
     iterations: usize,
     delay: f64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("[Browser timestamp samples]");
-    // check if default browser should be opend
-    browser.try_open()?;
+
     // create new input
     let mut enigo = Enigo::new();
 

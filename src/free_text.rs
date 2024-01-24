@@ -8,11 +8,10 @@ use std::{
 
 use enigo::{Enigo, Key, KeyboardControllable};
 
-use crate::{delay::delay_busy, OpenBrowser, DOWNLOAD_KEY};
+use crate::{delay::delay_busy, DOWNLOAD_KEY};
 
 #[allow(clippy::cast_precision_loss)]
-pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
-    brower: &OpenBrowser<S>,
+pub fn free_text_simulation<R: AsRef<Path>>(
     input_file_desc: R,
     warmup: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -29,8 +28,6 @@ pub fn free_text_simulation<S: AsRef<str>, R: AsRef<Path>>(
     }
     std::fs::create_dir_all("./free-text-output")?;
 
-    // check if default browser should be opened
-    brower.try_open().unwrap();
     println!("Waiting for use to be ready (5 secs) ...");
     std::thread::sleep(Duration::from_secs_f64(5.0));
     println!("Start simulating...");

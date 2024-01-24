@@ -10,12 +10,11 @@ use enigo::{Enigo, Key, KeyboardControllable};
 
 use crate::{
     delay::{delay_busy, delay_sleep},
-    Error, OpenBrowser, DOWNLOAD_KEY,
+    Error, DOWNLOAD_KEY,
 };
 
 #[allow(clippy::cast_precision_loss)]
-pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
-    browser: &OpenBrowser<S>,
+pub fn pw_simulation<R: AsRef<Path>>(
     in_file: R,
     out_file: R,
     sleep: f64,
@@ -61,9 +60,6 @@ pub fn pw_simulation<S: AsRef<str>, R: AsRef<Path>>(
 
     // initilaize csv file
     writeln!(&mut output_file, "i,should_take,took,subject,session,rep")?;
-
-    // try to open default webbrowser
-    browser.try_open()?;
 
     rows = rows[skip..skip + count].to_vec();
 
