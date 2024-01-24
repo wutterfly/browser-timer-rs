@@ -20,13 +20,6 @@ pub fn live_simulation<R: AsRef<Path>>(
 
     println!("Read all input files...");
 
-    const OUT_DIR: &str = "./free-text-output";
-    // create output dir
-    if std::fs::remove_dir_all("./free-text-output").is_err() {
-        println!("Output folder not removed");
-    }
-    std::fs::create_dir_all("./free-text-output")?;
-
     println!("Waiting for use to be ready (5 secs) ...");
     std::thread::sleep(Duration::from_secs_f64(5.0));
     println!("Start simulating...");
