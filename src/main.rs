@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Take timestamp probes every delay(sec)
         Commands::Timer { iterations, delay } => {
-            timer_samples::browser_timer_sampler(iterations, delay)?;
+            timer_samples::browser_timer_sampler(iterations, delay);
         }
 
         // Simulate typing random/free text

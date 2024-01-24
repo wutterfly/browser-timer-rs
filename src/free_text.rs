@@ -24,7 +24,7 @@ pub fn free_text_simulation<R: AsRef<Path>>(
     const OUT_DIR: &str = "./free-text-output";
     // create output dir
     if std::fs::remove_dir_all("./free-text-output").is_err() {
-        println!("Output folder not removed")
+        println!("Output folder not removed");
     }
     std::fs::create_dir_all("./free-text-output")?;
 
@@ -77,7 +77,7 @@ pub fn free_text_simulation<R: AsRef<Path>>(
         // execute task list
         let mut last = Option::<Instant>::None;
         let mut last_waited = 0.0;
-        for task in tasks.into_iter() {
+        for task in tasks {
             match task {
                 // wait
                 Task::Wait(dur) => {
@@ -146,7 +146,7 @@ fn create_task_list(
         .step_by(2)
         .map(|key_raw| {
             let key_u8 = key_raw.parse::<u8>()?;
-            writeln!(key_file, "{},", key_u8)?;
+            writeln!(key_file, "{key_u8},")?;
             Ok::<Key, Box<dyn std::error::Error>>(map_u8_key(key_u8))
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -227,7 +227,7 @@ fn get_input_files<R: AsRef<Path>>(
     for file_p in &file_paths {
         let f = std::fs::File::open(file_p)?;
 
-        let fp = file_p.split('/').into_iter().last().unwrap();
+        let fp = file_p.split('/').last().unwrap();
         out.push((f, fp.to_owned()));
     }
 
@@ -237,21 +237,21 @@ fn get_input_files<R: AsRef<Path>>(
 #[inline(always)]
 fn map_u8_key(c: u8) -> Key {
     // uppercase letters to lowercase letters
-    if c >= 65 && c <= 90 {
+    if (65..=90).contains(&c) {
         return Key::Layout((c + 32) as char);
     }
 
     // lowercase letters
-    if c >= 97 && c <= 122 {
+    if (97..=122).contains(&c) {
         return Key::Layout(c as char);
     }
 
     // numbers
-    if c >= 48 && c <= 57 {
+    if (48..=57).contains(&c) {
         return Key::Layout(c as char);
     }
 
-    return match c {
+    match c {
         8 => Key::Backspace,
         13 => Key::Layout(c as char),
         32 => Key::Space,
@@ -259,7 +259,7 @@ fn map_u8_key(c: u8) -> Key {
         45 => Key::Layout('-'),
         46 => Key::Layout('.'),
         _ => Key::Layout('#'),
-    };
+    }
 }
 
 #[derive(Debug)]

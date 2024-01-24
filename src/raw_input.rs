@@ -88,7 +88,7 @@ pub fn capture_raw_input<R: AsRef<Path>>(
     thread::spawn(move || {
         // This will block.
         if let Err(error) = grab(callback) {
-            println!("Error: {:?}", error);
+            println!("Error: {error:?}");
         }
     });
 

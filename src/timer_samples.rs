@@ -2,10 +2,7 @@ use enigo::{Enigo, Key, KeyboardControllable}; //MouseButton, MouseControllable}
 
 use crate::delay::{delay_busy, delay_sleep};
 
-pub fn browser_timer_sampler(
-    iterations: usize,
-    delay: f64,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn browser_timer_sampler(iterations: usize, delay: f64) {
     println!("[Browser timestamp samples]");
 
     // create new input
@@ -31,14 +28,12 @@ pub fn browser_timer_sampler(
         enigo.key_down(Key::Layout('a'));
 
         #[cfg(not(target_os = "macos"))]
-        enigo.key_down(KEYS[i % KEYS.len()])
+        enigo.key_down(KEYS[i % KEYS.len()]);
     }
 
     // output delays
     // TODO: write to file?
     println!("{delays:?}");
-
-    Ok(())
 }
 
 const KEYS: [Key; 28] = [

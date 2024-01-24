@@ -36,14 +36,13 @@ pub fn pw_simulation<R: AsRef<Path>>(
         return Err(Box::new(Error(format!(
             "Skip and Count parameter are greater then total password count (20400): skip: {skip} + count: {count} = {}", skip + count 
         ))));
-    } else {
-        println!(
-            "Simulating {} passwords. [{}..{}]",
-            count,
-            skip,
-            skip + count
-        );
     }
+    println!(
+        "Simulating {} passwords. [{}..{}]",
+        count,
+        skip,
+        skip + count
+    );
 
     // read all rows (1 row == 1 password)
     let mut rows = read_data(in_file.as_ref())?;
@@ -305,8 +304,8 @@ impl Row {
 
         // R
         events.push(Event::new_down(timestamp, Key::Shift));
-        events.push(Event::new_down(timestamp + 0.0000001, Key::Layout('r')));
-        events.push(Event::new_up(timestamp + 0.0000002, Key::Shift));
+        events.push(Event::new_down(timestamp + 0.000_000_1, Key::Layout('r')));
+        events.push(Event::new_up(timestamp + 0.000_000_2, Key::Shift));
         timestamp += self.h_shift_r;
         events.push(Event::new_up(timestamp, Key::Layout('r')));
 
