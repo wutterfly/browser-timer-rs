@@ -36,9 +36,6 @@ pub fn live_simulation<R: AsRef<Path>>(
 
         let reader = BufReader::new(file);
 
-        let mut path = std::path::Path::new(OUT_DIR).join(f_name);
-        assert!(path.set_extension("csv"));
-
         // read file to vec
         let raw: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
 
