@@ -8,7 +8,10 @@ use std::{
 
 use enigo::{Enigo, Key, KeyboardControllable};
 
-use crate::{delay::delay_busy, DOWNLOAD_KEY};
+use crate::{
+    delay::{delay_busy, delay_sleep},
+    DOWNLOAD_KEY,
+};
 
 #[allow(clippy::cast_precision_loss)]
 pub fn free_text_simulation<R: AsRef<Path>>(
@@ -112,6 +115,9 @@ pub fn free_text_simulation<R: AsRef<Path>>(
                 }
             }
         }
+
+        // sleep before finishing this queue
+        delay_sleep(5.0);
 
         // if task list is finished, trigger download
         keyboard.key_click(DOWNLOAD_KEY);
